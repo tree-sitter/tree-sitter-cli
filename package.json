@@ -1,21 +1,21 @@
 {
   "name": "tree-sitter-compiler",
+  "author": "Max Brunsfeld",
+  "license": "MIT",
   "repository": {
     "type" : "git",
     "url" : "http://github.com/maxbrunsfeld/node-tree-sitter-compiler.git"
   },
-  "version": "0.0.0",
   "description": "Incremental parsers for node",
-  "main": "index.js",
-  "scripts": {
-    "test": "mocha --compilers coffee:coffee-script/register"
-  },
   "keywords": [
     "parser",
     "lexer"
   ],
-  "author": "Max Brunsfeld",
-  "license": "MIT",
+  "main": "index.js",
+  "scripts": {
+    "test": "mocha --compilers coffee:coffee-script/register"
+  },
+  "version": "0.0.0",
   "dependencies": {
     "bindings": "1.2.x",
     "execSync": "1.0.x",
