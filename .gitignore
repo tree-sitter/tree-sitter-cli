@@ -1,0 +1,11 @@
+*.pyc
+*.log
+lib-cov
+coverage
+.grunt
+build
+gyp-mac-tool
+tree_sitter
+*.xcodeproj
+node_modules
+.vagrant
