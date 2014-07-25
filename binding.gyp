@@ -18,7 +18,6 @@
       ],
       "cflags": [
         "-std=c++0x",
-        "-stdlib=libc++",
       ],
       'xcode_settings': {
         'CLANG_CXX_LANGUAGE_STANDARD': 'c++11',
