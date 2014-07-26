@@ -1,9 +1,14 @@
 #include "tree_sitter/runtime.h"
 #include <node.h>
 
+using namespace v8;
+
 extern "C" TSParser * ts_parser_<%= parserName %>();
 
-using namespace v8;
+class Parser : public node::ObjectWrap {
+ public:
+  static Handle<Value> NewInstance(TSParser *);
+};
 
 static Handle<Value> NewParser(const Arguments &args) {
   HandleScope scope;
