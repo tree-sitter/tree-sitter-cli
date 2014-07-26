@@ -1,0 +1,19 @@
+#include "tree_sitter/runtime.h"
+#include <node.h>
+
+extern "C" TSParser * ts_parser_<%= parserName %>();
+
+using namespace v8;
+
+static Handle<Value> NewParser(const Arguments &args) {
+  HandleScope scope;
+  return scope.Close(Parser::NewInstance(ts_parser_<%= parserName %>()));
+}
+
+void InitAll(Handle<Object> exports, Handle<Object> module) {
+  module->Set(
+      String::NewSymbol("exports"),
+      FunctionTemplate::New(NewParser)->GetFunction());
+}
+
+NODE_MODULE(ts_language_<%= parserName %>_binding, InitAll)

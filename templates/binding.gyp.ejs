@@ -1,0 +1,17 @@
+{
+  "targets": [
+    {
+      "target_name": "ts_language_<%= parserName %>_binding",
+      "include_dirs": [
+        "include",
+      ],
+      "sources": [
+        "parser.c",
+        "parser.cc",
+      ],
+      "cflags_c": [
+        "-std=c99",
+      ],
+    },
+  ],
+}

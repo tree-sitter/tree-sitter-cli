@@ -50,7 +50,11 @@ rule_ptr RuleFromJsRule(Handle<Object> js_rule) {
     uint32_t length = js_members->Length();
     for (uint32_t i = 0; i < length; i++) {
       Handle<Object> js_member = ArrayGet<Object>(js_members, i);
-      members.push_back(RuleFromJsRule(js_member));
+      rule_ptr member = RuleFromJsRule(js_member);
+      if (member.get())
+        members.push_back(member);
+      else
+        return rule_ptr();
     }
     return choice(members);
   }
@@ -70,13 +74,28 @@ rule_ptr RuleFromJsRule(Handle<Object> js_rule) {
     uint32_t length = js_members->Length();
     for (uint32_t i = 0; i < length; i++) {
       Handle<Object> js_member = ArrayGet<Object>(js_members, i);
-      members.push_back(RuleFromJsRule(js_member));
+      rule_ptr member = RuleFromJsRule(js_member);
+      if (member.get())
+        members.push_back(member);
+      else
+        return rule_ptr();
     }
     return seq(members);
   }
 
   if (type == "STRING")
     return str(StringFromJsString(ObjectGet<String>(js_rule, "value")));
+
+  if (type == "KEYWORD")
+    return keyword(StringFromJsString(ObjectGet<String>(js_rule, "value")));
+
+  if (type == "TOKEN") {
+    rule_ptr value = RuleFromJsRule(ObjectGet<Object>(js_rule, "value"));
+    if (value.get())
+      return token(value);
+    else
+      return rule_ptr();
+  }
 
   if (type == "SYMBOL")
     return sym(StringFromJsString(ObjectGet<String>(js_rule, "name")));

@@ -1,15 +1,26 @@
 #!/usr/bin/env node
 
 require("coffee-script/register");
+
 var treeSitter = require("./index"),
-    parseArgs = require("minimist");
+    templates = require("./lib/templates"),
+    fs = require("fs"),
+    path = require("path"),
+    cp = require("ncp"),
+    cwd = process.cwd();
 
-var args = parseArgs(process.argv.slice(2));
-var filename = args._[0];
-var grammarFn = require(filename);
-
-var grammarHash = grammarFn(treeSitter.rules);
+var grammarHash = require(path.join(cwd, "grammar"));
 var grammar = treeSitter.grammar(grammarHash);
-var code = treeSitter.compile(grammar)
 
-console.log(code);
+fs.writeFileSync(path.join(cwd, "parser.c"), treeSitter.compile(grammar));
+fs.writeFileSync(path.join(cwd, "parser.cc"), templates.code(grammar.name));
+fs.writeFileSync(path.join(cwd, "binding.gyp"), templates.gyp(grammar.name));
+
+cp(
+  path.join(__dirname, "vendor", "tree-sitter", "include"),
+  path.join(cwd, "include"),
+  function(err) {
+    if (err) {
+      console.log("Error: ", err);
+    }
+  });

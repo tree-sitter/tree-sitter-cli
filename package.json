@@ -15,11 +15,15 @@
   "scripts": {
     "test": "mocha --compilers coffee:coffee-script/register"
   },
+  "bin": {
+    "tree-sitter": "cli.js"
+  },
   "version": "0.0.0",
   "dependencies": {
     "bindings": "1.2.x",
+    "ejs": "1.0.0",
     "execSync": "1.0.x",
-    "minimist": "*",
+    "ncp": "0.6.0",
     "temp": "0.7.x",
     "tree-sitter": "*"
   },
