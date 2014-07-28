@@ -29,7 +29,7 @@ function compile() {
 
   mkdirp.sync(path.join(cwd, "src"));
   fs.writeFileSync(path.join(cwd, "src", "parser.c"), treeSitter.compile(grammar));
-  fs.writeFileSync(path.join(cwd, "src", "init.cc"), templates.initCC(grammar.name));
+  fs.writeFileSync(path.join(cwd, "src", "binding.cc"), templates.bindingCC(grammar.name));
   fs.writeFileSync(path.join(cwd, "binding.gyp"), templates.bindingGyp(grammar.name));
   fs.writeFileSync(path.join(cwd, "index.js"), templates.indexJS(grammar.name));
 
