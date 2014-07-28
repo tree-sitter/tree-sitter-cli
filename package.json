@@ -26,7 +26,7 @@
     "mkdirp": "*",
     "ncp": "0.6.0",
     "temp": "0.7.x",
-    "tree-sitter": "*"
+    "tree-sitter": "git://github.com/maxbrunsfeld/node-tree-sitter.git"
   },
   "devDependencies": {
     "coffee-script": "1.7.x",
