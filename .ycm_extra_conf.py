@@ -9,6 +9,7 @@ flags = [
     '-stdlib=libc++',
     '-x', 'c++',
     '-I', 'src',
+    '-I', 'node_modules/tree-sitter/include',
     '-I', '/usr/local/include/node',
     '-I', 'vendor/tree-sitter/include',
     '-isystem', '/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/c++/v1',
