@@ -21,15 +21,16 @@
   "version": "0.0.0",
   "dependencies": {
     "bindings": "1.2.x",
+    "coffee-script": "1.7.x",
     "ejs": "1.0.0",
     "execSync": "1.0.x",
     "mkdirp": "*",
     "ncp": "0.6.0",
     "temp": "0.7.x",
-    "tree-sitter": "*"
+    "tree-sitter": "*",
+    "vows": "0.7.x"
   },
   "devDependencies": {
-    "coffee-script": "1.7.x",
     "mocha": "1.17.x",
     "node-gyp": "0.13.x"
   }
