@@ -18,28 +18,36 @@ describe "Document", ->
     document = new treeSitter.Document()
     document.setParser(parser)
 
-  describe "setParser", ->
-    describe "when the supplied object is not a parser", ->
-      it "throws an exception", ->
-        assert.throws((->
-          document.setParser({})
-        ), /Invalid parser/)
+  describe "error handling", ->
+    describe "setParser", ->
+      describe "when the supplied object is not a parser", ->
+        it "throws an exception", ->
+          assert.throws((->
+            document.setParser({})
+          ), /Invalid parser/)
 
-  describe "setInput", ->
-    describe "when the supplied object does not implement .seek(n)", ->
-      it "throws an exception", ->
-        assert.throws((->
-          document.setInput({
-            seek: (n) -> 0
-          })
-        ), /Input.*implement.*read/)
+          assert.throws((->
+            document.setParser(undefined)
+          ), /Invalid parser/)
 
-        assert.throws((->
-          document.setInput({
-            read: -> ""
-          })
-        ), /Input.*implement.*seek/)
+    describe "setInput", ->
+      describe "when the supplied object does not implement .seek(n)", ->
+        it "throws an exception", ->
+          assert.throws((->
+            document.setInput({
+              read: -> ""
+            })
+          ), /Input.*implement.*seek/)
 
+      describe "when the supplied object does not implement .read()", ->
+        it "throws an exception", ->
+          assert.throws((->
+            document.setInput({
+              seek: (n) -> 0
+            })
+          ), /Input.*implement.*read/)
+
+      it "succeeds otherwise", ->
         document.setInput({
           read: -> ""
           seek: (n) -> 0
