@@ -5,20 +5,32 @@ using namespace v8;
 
 extern "C" TSParser * ts_parser_<%= parserName %>();
 
-class Parser : public node::ObjectWrap {
- public:
-  static Handle<Value> NewInstance(TSParser *);
-};
+namespace tree_sitter_<%= parserName %> {
 
-static Handle<Value> NewParser(const Arguments &args) {
+static Persistent<Function> constructor;
+
+static Handle<Value> New(const Arguments &args) {
   HandleScope scope;
-  return scope.Close(Parser::NewInstance(ts_parser_<%= parserName %>()));
+  Handle<Object> instance;
+  if (args.IsConstructCall()) {
+    instance = args.This();
+  } else {
+    instance = constructor->NewInstance(0, NULL);
+  }
+  instance->SetInternalField(0, External::New(ts_parser_<%= parserName %>()));
+  return scope.Close(instance);
 }
 
 void InitAll(Handle<Object> exports, Handle<Object> module) {
-  module->Set(
-      String::NewSymbol("exports"),
-      FunctionTemplate::New(NewParser)->GetFunction());
+  Local<FunctionTemplate> tpl = FunctionTemplate::New(New);
+  tpl->SetClassName(String::NewSymbol("<%= camelizedParserName %>Parser"));
+  tpl->InstanceTemplate()->SetInternalFieldCount(1);
+
+  constructor = Persistent<Function>::New(tpl->GetFunction());
+
+  module->Set(String::NewSymbol("exports"), constructor);
 }
 
 NODE_MODULE(ts_language_<%= parserName %>_binding, InitAll)
+
+}  // namespace tree_sitter_<%= parserName %>

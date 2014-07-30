@@ -5,13 +5,10 @@
       "dependencies": [
         "vendor/tree-sitter/project.gyp:compiler",
       ],
-      "include_dirs": [
-        "node_modules/tree-sitter/include",
-      ],
       "sources": [
         "src/binding.cc",
         "src/compile.cc",
-        "src/load_parser.cc",
+        "src/parser.cc",
       ],
       'conditions': [
         ['OS == "mac"', {

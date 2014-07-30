@@ -2,6 +2,8 @@
 #include "tree_sitter/compiler.h"
 #include <utility>
 
+namespace node_tree_sitter_compiler {
+
 using namespace v8;
 using namespace tree_sitter::rules;
 using tree_sitter::Grammar;
@@ -146,3 +148,5 @@ Handle<Value> Compile(const Arguments &args) {
   tuple<string, vector<Conflict>, const GrammarError *> result = tree_sitter::compile(grammarResult.first, name);
   return scope.Close(String::New(get<0>(result).c_str()));
 }
+
+}  // namespace node_tree_sitter_compiler

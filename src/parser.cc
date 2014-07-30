@@ -1,10 +1,13 @@
 #include <node.h>
 #include <uv.h>
-#include "tree_sitter/runtime.h"
-#include "node_tree_sitter/parser.h"
 #include <string>
+#include "tree_sitter/runtime.h"
 
 using namespace v8;
+
+namespace node_tree_sitter_compiler {
+
+static Persistent<Function> constructor;
 
 Handle<Value> LoadParser(const Arguments &args) {
   HandleScope scope;
@@ -30,5 +33,22 @@ Handle<Value> LoadParser(const Arguments &args) {
         String::Concat(String::New("Error loading parser from parser file - "), message)));
   }
 
-  return scope.Close(Parser::NewInstance(parser_constructor()));
+  Local<Object> instance = constructor->NewInstance();
+  instance->SetInternalField(0, External::New(parser_constructor()));
+  return scope.Close(instance);
 }
+
+static Handle<Value> NewParser(const Arguments &args) {
+  HandleScope scope;
+  return scope.Close(Undefined());
+}
+
+void InitParser(v8::Handle<v8::Object> exports) {
+  Local<FunctionTemplate> tpl = FunctionTemplate::New(NewParser);
+  tpl->SetClassName(String::NewSymbol("DynamicallyLoadedParser"));
+  tpl->InstanceTemplate()->SetInternalFieldCount(1);
+
+  constructor = Persistent<Function>::New(tpl->GetFunction());
+}
+
+}  // namespace node_tree_sitter_compiler
