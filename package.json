@@ -3,8 +3,8 @@
   "author": "Max Brunsfeld",
   "license": "MIT",
   "repository": {
-    "type" : "git",
-    "url" : "http://github.com/maxbrunsfeld/node-tree-sitter-compiler.git"
+    "type": "git",
+    "url": "http://github.com/maxbrunsfeld/node-tree-sitter-compiler.git"
   },
   "description": "Incremental parsers for node",
   "keywords": [
@@ -18,7 +18,7 @@
   "bin": {
     "tree-sitter": "cli.js"
   },
-  "version": "0.0.0",
+  "version": "0.0.1",
   "dependencies": {
     "bindings": "1.2.x",
     "coffee-script": "1.7.x",
