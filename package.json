@@ -31,7 +31,6 @@
     "vows": "0.7.x"
   },
   "devDependencies": {
-    "mocha": "1.17.x",
-    "node-gyp": "0.13.x"
+    "mocha": "1.17.x"
   }
 }
