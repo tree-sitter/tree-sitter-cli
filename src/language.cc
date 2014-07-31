@@ -26,8 +26,8 @@ Handle<Value> LoadLanguage(const Arguments &args) {
     return scope.Close(Undefined());
   }
 
-  TSLanguage *language = NULL;
-  error_code = uv_dlsym(&parser_lib, (std::string("ts_language_") + *language_name).c_str(), (void **)&language);
+  const TSLanguage * (* language_fn)() = NULL;
+  error_code = uv_dlsym(&parser_lib, (std::string("ts_language_") + *language_name).c_str(), (void **)&language_fn);
   if (error_code) {
     Handle<String> message = String::New(uv_dlerror(&parser_lib));
     ThrowException(Exception::Error(
@@ -35,13 +35,13 @@ Handle<Value> LoadLanguage(const Arguments &args) {
     return scope.Close(Undefined());
   }
 
-  if (!language) {
+  if (!language_fn) {
     ThrowException(Exception::Error(String::New("Could not load language")));
     return scope.Close(Undefined());
   }
 
   Local<Object> instance = constructor->NewInstance();
-  instance->SetInternalField(0, External::New((void *)language));
+  instance->SetInternalField(0, External::New((void *)language_fn()));
   return scope.Close(instance);
 }
 

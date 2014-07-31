@@ -4,8 +4,6 @@ compiler = require ".."
 SpyReader = require "./helpers/spy_reader"
 { blank, choice, repeat, seq } = compiler.rules
 
-require("segfault-handler").registerHandler()
-
 describe "building a grammar", ->
   document = null
 

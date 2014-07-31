@@ -18,17 +18,17 @@ describe "Document", ->
     document = new treeSitter.Document()
     document.setLanguage(parser)
 
-  describe.only "error handling", ->
+  describe "error handling", ->
     describe "setLanguage", ->
       describe "when the supplied object is not a tree-sitter language", ->
         it "throws an exception", ->
           assert.throws((->
             document.setLanguage({})
-          ), /Invalid parser/)
+          ), /Invalid language/)
 
           assert.throws((->
             document.setLanguage(undefined)
-          ), /Invalid parser/)
+          ), /Invalid language/)
 
     describe "setInput", ->
       describe "when the supplied object does not implement .seek(n)", ->
