@@ -4,6 +4,8 @@ compiler = require ".."
 SpyReader = require "./helpers/spy_reader"
 { blank, choice, repeat, seq } = compiler.rules
 
+require("segfault-handler").registerHandler()
+
 describe "building a grammar", ->
   document = null
 
@@ -18,7 +20,7 @@ describe "building a grammar", ->
           rules:
             the_rule: -> blank()
 
-        document.setParser(compiler.compileAndLoad(grammar))
+        document.setLanguage(compiler.compileAndLoad(grammar))
 
         document.setInputString("")
         assert.equal(document.toString(), "Document: (the_rule)")
@@ -32,7 +34,7 @@ describe "building a grammar", ->
           rules:
             the_rule: -> "the-string"
 
-        document.setParser(compiler.compileAndLoad(grammar))
+        document.setLanguage(compiler.compileAndLoad(grammar))
 
         document.setInputString("the-string")
         assert.equal(document.toString(), "Document: (the_rule)")
@@ -46,7 +48,7 @@ describe "building a grammar", ->
           rules:
             the_rule: -> /[a-c]+/
 
-        document.setParser(compiler.compileAndLoad(grammar))
+        document.setLanguage(compiler.compileAndLoad(grammar))
 
         document.setInputString("abcba")
         assert.equal(document.toString(), "Document: (the_rule)")
@@ -60,7 +62,7 @@ describe "building a grammar", ->
           rules:
             the_rule: -> repeat("o")
 
-        document.setParser(compiler.compileAndLoad(grammar))
+        document.setLanguage(compiler.compileAndLoad(grammar))
 
         document.setInputString("")
         assert.equal(document.toString(), "Document: (the_rule)")
@@ -76,7 +78,7 @@ describe "building a grammar", ->
           rules:
             the_rule: -> seq("1", "2", "3")
 
-        document.setParser(compiler.compileAndLoad(grammar))
+        document.setLanguage(compiler.compileAndLoad(grammar))
 
         document.setInputString("123")
         assert.equal(document.toString(), "Document: (the_rule)")
@@ -92,7 +94,7 @@ describe "building a grammar", ->
           rules:
             the_rule: -> choice("1", "2", "3")
 
-        document.setParser(compiler.compileAndLoad(grammar))
+        document.setLanguage(compiler.compileAndLoad(grammar))
 
         document.setInputString("1")
         assert.equal(document.toString(), "Document: (the_rule)")
@@ -108,7 +110,7 @@ describe "building a grammar", ->
             second_rule: -> "one"
             third_rule: -> "two"
 
-        document.setParser(compiler.compileAndLoad(grammar))
+        document.setLanguage(compiler.compileAndLoad(grammar))
 
         document.setInputString("one-two")
         assert.equal(document.toString(), "Document: (the_rule (second_rule) (third_rule))")

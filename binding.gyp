@@ -8,7 +8,7 @@
       "sources": [
         "src/binding.cc",
         "src/compile.cc",
-        "src/parser.cc",
+        "src/language.cc",
       ],
       'conditions': [
         ['OS == "mac"', {
