@@ -2,6 +2,8 @@ treeSitter = require "tree-sitter"
 assert = require "assert"
 compiler = require ".."
 
+require("segfault-handler").registerHandler()
+
 describe "Document", ->
   document = null
   language = null
@@ -17,7 +19,7 @@ describe "Document", ->
   beforeEach ->
     document = new treeSitter.Document()
 
-  describe "setLanguage", ->
+  describe "::setLanguage(language)", ->
     describe "when the supplied object is not a tree-sitter language", ->
       it "throws an exception", ->
         assert.throws((->
@@ -33,7 +35,25 @@ describe "Document", ->
         document.setLanguage(language)
         assert.equal(null, document.rootNode())
 
-  describe "setInput", ->
+  describe "::setInput(input)", ->
+    describe "when the language has been set", ->
+      beforeEach ->
+        document.setLanguage(language)
+
+      it "parses the input", ->
+        document.setInput({
+          read: ->
+            @_readIndex++
+            ["st", "u", "ff", "", ""][@_readIndex - 1]
+
+          seek: (n) ->
+            0
+
+          _readIndex: 0,
+        })
+
+        assert.equal("(the_rule)", document.rootNode())
+
     describe "when the supplied object does not implement #seek(n)", ->
       it "throws an exception", ->
         assert.throws((->
@@ -58,18 +78,3 @@ describe "Document", ->
         })
         assert.equal(null, document.rootNode())
 
-    describe "when the language has been set", ->
-      it "parses the input", ->
-        it "succeeds otherwise", ->
-          document.setInput({
-            read: ->
-              @_readIndex++
-              ["st", "u", "ff"][@_readIndex]
-
-            seek: (n) ->
-              0
-
-            _readIndex: 0,
-          })
-
-          assert.equal("(the_rule)", document.rootNode())
