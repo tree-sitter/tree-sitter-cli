@@ -1,5 +1,5 @@
 language: node_js
-before_test:
+before_script:
   - script/get_edge_deps
 node_js:
   - "0.10"
