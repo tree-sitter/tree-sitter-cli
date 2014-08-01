@@ -1,20 +1,17 @@
 treeSitter = require "tree-sitter"
 assert = require "assert"
 compiler = require ".."
-
-require("segfault-handler").registerHandler()
+{ repeat } = compiler.rules
 
 describe "Document", ->
   document = null
-  language = null
 
-  before ->
-    grammar = compiler.grammar
-      name: "test"
-      rules:
-        the_rule: -> "stuff"
-
-    language = compiler.compileAndLoad(grammar)
+  language = compiler.compileAndLoad(compiler.grammar
+    name: "test"
+    rules:
+      sentence: -> repeat(@word)
+      word: -> "the-word"
+  )
 
   beforeEach ->
     document = new treeSitter.Document()
@@ -44,7 +41,12 @@ describe "Document", ->
         document.setInput({
           read: ->
             @_readIndex++
-            ["st", "u", "ff", "", ""][@_readIndex - 1]
+            [
+              "the", "-", "word",
+              " ",
+              "the", "-", "word",
+              ""
+            ][@_readIndex - 1]
 
           seek: (n) ->
             0
@@ -52,7 +54,30 @@ describe "Document", ->
           _readIndex: 0,
         })
 
-        assert.equal("(the_rule)", document.rootNode())
+        assert.equal("(sentence (word) (word))", document.rootNode().toString())
+
+      describe "when the input.read() returns something other than a string", ->
+        it "stops reading", ->
+          input = {
+            read: ->
+              @_readIndex++
+              [
+                "the", "-", "word",
+                {},
+                "the", "-", "word",
+                " "
+              ][@_readIndex - 1]
+
+            seek: (n) ->
+              0
+
+            _readIndex: 0,
+          }
+
+          document.setInput(input)
+
+          assert.equal("(sentence (word))", document.rootNode().toString())
+          assert.equal(4, input._readIndex)
 
     describe "when the supplied object does not implement #seek(n)", ->
       it "throws an exception", ->
