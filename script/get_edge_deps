@@ -1,0 +1,13 @@
+#!/usr/bin/env bash
+
+set -e
+
+TS_DIR=node_modules/tree-sitter
+rm -rf $TS_DIR
+git clone http://github.com/maxbrunsfeld/node-tree-sitter.git $TS_DIR
+
+(
+  cd $TS_DIR
+  git submodule update --init
+  npm install
+)
