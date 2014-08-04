@@ -1,7 +1,10 @@
 treeSitter = require "tree-sitter"
 assert = require "assert"
 compiler = require ".."
-{ repeat } = compiler.rules
+{ repeat, choice } = compiler.rules
+
+precondition = (f) ->
+  it "has the right precondition", f
 
 describe "Document", ->
   document = null
@@ -9,8 +12,9 @@ describe "Document", ->
   language = compiler.compileAndLoad(compiler.grammar
     name: "test"
     rules:
-      sentence: -> repeat(@word)
-      word: -> "the-word"
+      sentence: -> repeat(choice(@word1, @word2))
+      word1: -> "first-word"
+      word2: -> "second-word"
   )
 
   beforeEach ->
@@ -42,9 +46,9 @@ describe "Document", ->
           read: ->
             @_readIndex++
             [
-              "the", "-", "word",
+              "first", "-", "word",
               " ",
-              "the", "-", "word",
+              "second", "-", "word",
               ""
             ][@_readIndex - 1]
 
@@ -54,7 +58,7 @@ describe "Document", ->
           _readIndex: 0,
         })
 
-        assert.equal("(sentence (word) (word))", document.rootNode().toString())
+        assert.equal("(sentence (word1) (word2))", document.rootNode().toString())
 
       describe "when the input.read() returns something other than a string", ->
         it "stops reading", ->
@@ -62,9 +66,9 @@ describe "Document", ->
             read: ->
               @_readIndex++
               [
-                "the", "-", "word",
+                "first", "-", "word",
                 {},
-                "the", "-", "word",
+                "second-word",
                 " "
               ][@_readIndex - 1]
 
@@ -76,10 +80,10 @@ describe "Document", ->
 
           document.setInput(input)
 
-          assert.equal("(sentence (word))", document.rootNode().toString())
+          assert.equal("(sentence (word1))", document.rootNode().toString())
           assert.equal(4, input._readIndex)
 
-    describe "when the supplied object does not implement #seek(n)", ->
+    describe "when the supplied object does not implement ::seek(n)", ->
       it "throws an exception", ->
         assert.throws((->
           document.setInput({
@@ -87,7 +91,7 @@ describe "Document", ->
           })
         ), /Input.*implement.*seek/)
 
-    describe "when the supplied object does not implement #read()", ->
+    describe "when the supplied object does not implement ::read()", ->
       it "throws an exception", ->
         assert.throws((->
           document.setInput({
@@ -103,3 +107,52 @@ describe "Document", ->
         })
         assert.equal(null, document.rootNode())
 
+  describe "::edit({ position, bytesAdded, bytesRemoved })", ->
+    input = null
+
+    beforeEach ->
+      input = {
+        position: 0
+        chunkSize: 3
+        text: "first-word second-word first-word"
+
+        seek: (n) ->
+          @position = n
+
+        read: ->
+          result = @text.slice(@position, @position + @chunkSize)
+          @position += @chunkSize
+          result
+      }
+
+      document.setLanguage(language)
+      document.setInput(input)
+
+    precondition ->
+      assert.equal(
+        "(sentence (word1) (word2) (word1))",
+        document.rootNode().toString())
+
+    describe "when text is inserted", ->
+      it "updates the parse tree", ->
+        input.text = "first-word first-word second-word first-word"
+        document.edit(
+          position: "first-word ".length
+          bytesInserted: "first-word ".length
+        )
+
+        assert.equal(
+          document.rootNode().toString(),
+          "(sentence (word1) (word1) (word2) (word1))")
+
+    describe "when text is removed", ->
+      it "updates the parse tree", ->
+        input.text = "first-word first-word"
+        document.edit(
+          position: "first-word ".length
+          bytesRemoved: "second-word ".length
+        )
+
+        assert.equal(
+          document.rootNode().toString(),
+          "(sentence (word1) (word1))")
