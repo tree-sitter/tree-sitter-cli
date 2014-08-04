@@ -112,6 +112,21 @@ describe "building a grammar", ->
 
         document.setInputString("one-two")
         assert.equal(document.toString(), "Document: (the_rule (second_rule) (third_rule))")
+
+  describe "ubiquitous tokens", ->
+    it "allows the given tokens to appear anywhere in the input", ->
+      grammar = compiler.grammar
+        name: "test_grammar"
+        ubiquitous: ["ellipsis"]
+        rules:
+          the_rule: -> repeat(@word)
+          word: -> /\w+/
+          ellipsis: -> "..."
+
+      document.setLanguage(compiler.compileAndLoad(grammar))
+
+      document.setInputString("one two ... three ... four")
+      assert.equal(document.toString(), "Document: (the_rule (word) (word) (ellipsis) (word) (ellipsis) (word))")
         
   describe "error handling", ->
     describe "when the grammar has no name", ->

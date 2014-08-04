@@ -1,6 +1,7 @@
 #include "./compile.h"
 #include "tree_sitter/compiler.h"
 #include <utility>
+#include <set>
 
 namespace node_tree_sitter_compiler {
 
@@ -14,6 +15,7 @@ using std::get;
 using std::pair;
 using std::tuple;
 using std::vector;
+using std::set;
 
 static std::string StringFromJsString(Handle<String> js_string) {
   String::Utf8Value utf8_string(js_string);
@@ -108,8 +110,10 @@ rule_ptr RuleFromJsRule(Handle<Object> js_rule) {
 
 pair<Grammar, bool> GrammarFromJsGrammar(Handle<Object> js_grammar) {
   Handle<Object> js_rules = ObjectGet<Object>(js_grammar, "rules");
-  if (!js_rules->IsObject())
-    ThrowException(Exception::TypeError(String::New("Expected grammar rules to be an object")));
+  if (!js_rules->IsObject()) {
+    ThrowException(Exception::TypeError(String::New("Expected rules to be an object")));
+    return { Grammar({}), false };
+  }
 
   vector<pair<string, rule_ptr>> rules;
   Local<Array> rule_names = js_rules->GetOwnPropertyNames();
@@ -125,7 +129,24 @@ pair<Grammar, bool> GrammarFromJsGrammar(Handle<Object> js_grammar) {
     }
   }
 
-  return { Grammar(rules), true };
+  Grammar result(rules);
+
+  Handle<Array> js_ubiquitous_tokens = ObjectGet<Array>(js_grammar, "ubiquitous");
+  if (!js_ubiquitous_tokens->IsUndefined()) {
+    if (!js_ubiquitous_tokens->IsArray()) {
+      ThrowException(Exception::TypeError(String::New("Expected ubiquitous_tokens to be an array")));
+      return { Grammar({}), false };
+    }
+
+    set<string> ubiquitous_tokens;
+    const uint32_t length = js_ubiquitous_tokens->Length();
+    for (uint32_t i = 0; i < length; i++)
+      ubiquitous_tokens.insert(StringFromJsString(ArrayGet<String>(js_ubiquitous_tokens, i)));
+
+    result.ubiquitous_tokens(ubiquitous_tokens);
+  }
+
+  return { result, true };
 }
 
 Handle<Value> Compile(const Arguments &args) {
