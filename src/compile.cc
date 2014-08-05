@@ -17,6 +17,11 @@ using std::tuple;
 using std::vector;
 using std::set;
 
+static char CharFromJsString(Handle<String> js_string) {
+  String::Utf8Value utf8_string(js_string);
+  return (*utf8_string)[0];
+}
+
 static std::string StringFromJsString(Handle<String> js_string) {
   String::Utf8Value utf8_string(js_string);
   return std::string(*utf8_string);
@@ -144,6 +149,21 @@ pair<Grammar, bool> GrammarFromJsGrammar(Handle<Object> js_grammar) {
       ubiquitous_tokens.insert(StringFromJsString(ArrayGet<String>(js_ubiquitous_tokens, i)));
 
     result.ubiquitous_tokens(ubiquitous_tokens);
+  }
+
+  Handle<Array> js_separators = ObjectGet<Array>(js_grammar, "separators");
+  if (!js_separators->IsUndefined()) {
+    if (!js_separators->IsArray()) {
+      ThrowException(Exception::TypeError(String::New("Expected separators to be an array")));
+      return { Grammar({}), false };
+    }
+
+    set<char> separators;
+    const uint32_t length = js_separators->Length();
+    for (uint32_t i = 0; i < length; i++)
+      separators.insert(CharFromJsString(ArrayGet<String>(js_separators, i)));
+
+    result.separators(separators);
   }
 
   return { result, true };

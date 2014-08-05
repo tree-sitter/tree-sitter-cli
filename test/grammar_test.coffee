@@ -127,6 +127,39 @@ describe "building a grammar", ->
 
       document.setInputString("one two ... three ... four")
       assert.equal(document.toString(), "Document: (the_rule (word) (word) (ellipsis) (word) (ellipsis) (word))")
+
+  describe "separators", ->
+    it "controls which characters are ignored between tokens", ->
+      grammar = compiler.grammar
+        name: "test_grammar"
+        separators: [".", "-"]
+        rules:
+          the_rule: -> repeat(@word)
+          word: -> "hello"
+
+      document.setLanguage(compiler.compileAndLoad(grammar))
+
+      document.setInputString("hello.hello-hello")
+      assert.equal(document.toString(), "Document: (the_rule (word) (word) (word))")
+
+      document.setInputString("hello hello")
+      assert.equal(document.toString(), "Document: (the_rule (word) (ERROR ' '))")
+
+    it "defaults to all whitespace characters", ->
+      grammar = compiler.grammar
+        name: "test_grammar"
+        rules:
+          the_rule: -> repeat(@word)
+          word: -> "hello"
+
+      document.setLanguage(compiler.compileAndLoad(grammar))
+
+      document.setInputString("hello hello\thello\nhello\rhello")
+      assert.equal(document.toString(), "Document: (the_rule (word) (word) (word) (word) (word))")
+
+      document.setInputString("hello.hello")
+      assert.equal(document.toString(), "Document: (the_rule (word) (ERROR '.'))")
+
         
   describe "error handling", ->
     describe "when the grammar has no name", ->
