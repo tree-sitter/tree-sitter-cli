@@ -1,7 +1,7 @@
-treeSitter = require "tree-sitter"
 assert = require "assert"
 compiler = require ".."
 { repeat, choice } = compiler.rules
+{ Document } = require "tree-sitter"
 
 precondition = (f) ->
   it "has the right precondition", f
@@ -18,7 +18,7 @@ describe "Document", ->
   )
 
   beforeEach ->
-    document = new treeSitter.Document()
+    document = new Document()
 
   describe "::setLanguage(language)", ->
     describe "when the supplied object is not a tree-sitter language", ->

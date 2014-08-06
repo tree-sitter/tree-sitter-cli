@@ -1,14 +1,13 @@
-treeSitter = require "tree-sitter"
 assert = require "assert"
 compiler = require ".."
-SpyReader = require "./helpers/spy_reader"
 { blank, choice, repeat, seq } = compiler.rules
+{ Document } = require "tree-sitter"
 
 describe "building a grammar", ->
   document = null
 
   beforeEach ->
-    document = new treeSitter.Document()
+    document = new Document()
 
   describe "rules", ->
     describe "blank", ->
@@ -160,7 +159,6 @@ describe "building a grammar", ->
       document.setInputString("hello.hello")
       assert.equal(document.toString(), "Document: (the_rule (word) (ERROR '.'))")
 
-        
   describe "error handling", ->
     describe "when the grammar has no name", ->
       it "raises an error", ->
