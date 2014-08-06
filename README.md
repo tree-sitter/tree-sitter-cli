@@ -42,8 +42,8 @@ Run `tree-sitter compile`. This will generate a C function for parsing your lang
 The `grammar` function takes an object with the following keys:
 
 * `name` - the name of the grammar
-* `rules` - a hash of 'name': 'rule' pairs (see the 'Rules' section)
-* `ubiquitous` - an array containing names of rules that are allowed to at any point in the input string. This is useful for parsing constructs like comments in programming languages.
+* `rules` - a hash of named rules (see the 'Rules' section)
+* `ubiquitous` - an array containing names of rules that are allowed to occur at any point in the input string. This is useful for parsing constructs like comments in programming languages.
 * `separators` - an array of 1-character strings which should be ignored in the input string.
 
 #### Rules
@@ -53,6 +53,6 @@ The `grammar` function takes an object with the following keys:
 * `@` property references - matches another rule with the given name.
 * `choice(rule...)` - matches any one of the given rules.
 * `repeat(rule)` - matches any number of repetitions of the given rule.
-* `seq(rule...)` - matches a string whose substrings match the given rules in order.
-* `blank()` - matches the empty string
-* `optional(rule)` - matches the given rule or the empty string
+* `seq(rule...)` - matches each of the given rules in sequence.
+* `blank()` - matches the empty string.
+* `optional(rule)` - matches the given rule or the empty string.
