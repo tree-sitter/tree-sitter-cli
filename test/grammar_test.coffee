@@ -20,9 +20,9 @@ describe "building a grammar", ->
         document.setLanguage(compiler.compileAndLoad(grammar))
 
         document.setInputString("")
-        assert.equal(document.toString(), "Document: (the_rule)")
+        assert.equal(document.toString(), "(DOCUMENT (the_rule))")
         document.setInputString("not-blank")
-        assert.equal(document.toString(), "Document: (ERROR 'n')")
+        assert.equal(document.toString(), "(DOCUMENT (ERROR 'n'))")
 
     describe "string", ->
       it "matches one particular string", ->
@@ -34,9 +34,9 @@ describe "building a grammar", ->
         document.setLanguage(compiler.compileAndLoad(grammar))
 
         document.setInputString("the-string")
-        assert.equal(document.toString(), "Document: (the_rule)")
+        assert.equal(document.toString(), "(DOCUMENT (the_rule))")
         document.setInputString("another-string")
-        assert.equal(document.toString(), "Document: (ERROR 'a')")
+        assert.equal(document.toString(), "(DOCUMENT (ERROR 'a'))")
 
     describe "regex", ->
       it "matches according to a regular expression", ->
@@ -48,9 +48,9 @@ describe "building a grammar", ->
         document.setLanguage(compiler.compileAndLoad(grammar))
 
         document.setInputString("abcba")
-        assert.equal(document.toString(), "Document: (the_rule)")
+        assert.equal(document.toString(), "(DOCUMENT (the_rule))")
         document.setInputString("def")
-        assert.equal(document.toString(), "Document: (ERROR 'd')")
+        assert.equal(document.toString(), "(DOCUMENT (ERROR 'd'))")
 
     describe "repeat", ->
       it "applies the given rule any number of times", ->
@@ -62,11 +62,11 @@ describe "building a grammar", ->
         document.setLanguage(compiler.compileAndLoad(grammar))
 
         document.setInputString("")
-        assert.equal(document.toString(), "Document: (the_rule)")
+        assert.equal(document.toString(), "(DOCUMENT (the_rule))")
         document.setInputString("o")
-        assert.equal(document.toString(), "Document: (the_rule)")
+        assert.equal(document.toString(), "(DOCUMENT (the_rule))")
         document.setInputString("ooo")
-        assert.equal(document.toString(), "Document: (the_rule)")
+        assert.equal(document.toString(), "(DOCUMENT (the_rule))")
 
     describe "sequence", ->
       it "applies a list of other rules in sequence", ->
@@ -78,11 +78,11 @@ describe "building a grammar", ->
         document.setLanguage(compiler.compileAndLoad(grammar))
 
         document.setInputString("123")
-        assert.equal(document.toString(), "Document: (the_rule)")
+        assert.equal(document.toString(), "(DOCUMENT (the_rule))")
         document.setInputString("12")
-        assert.equal(document.toString(), "Document: (ERROR <EOF>)")
+        assert.equal(document.toString(), "(DOCUMENT (ERROR <EOF>))")
         document.setInputString("1234")
-        assert.equal(document.toString(), "Document: (ERROR '4')")
+        assert.equal(document.toString(), "(DOCUMENT (ERROR '4'))")
 
     describe "choice", ->
       it "applies any of a list of rules", ->
@@ -94,9 +94,9 @@ describe "building a grammar", ->
         document.setLanguage(compiler.compileAndLoad(grammar))
 
         document.setInputString("1")
-        assert.equal(document.toString(), "Document: (the_rule)")
+        assert.equal(document.toString(), "(DOCUMENT (the_rule))")
         document.setInputString("4")
-        assert.equal(document.toString(), "Document: (ERROR '4')")
+        assert.equal(document.toString(), "(DOCUMENT (ERROR '4'))")
 
     describe "symbol", ->
       it "applies another rule in the grammar by name", ->
@@ -110,7 +110,7 @@ describe "building a grammar", ->
         document.setLanguage(compiler.compileAndLoad(grammar))
 
         document.setInputString("one-two")
-        assert.equal(document.toString(), "Document: (the_rule (second_rule) (third_rule))")
+        assert.equal(document.toString(), "(DOCUMENT (the_rule (second_rule) (third_rule)))")
 
   describe "ubiquitous tokens", ->
     it "allows the given tokens to appear anywhere in the input", ->
@@ -125,7 +125,7 @@ describe "building a grammar", ->
       document.setLanguage(compiler.compileAndLoad(grammar))
 
       document.setInputString("one two ... three ... four")
-      assert.equal(document.toString(), "Document: (the_rule (word) (word) (ellipsis) (word) (ellipsis) (word))")
+      assert.equal(document.toString(), "(DOCUMENT (the_rule (word) (word) (ellipsis) (word) (ellipsis) (word)))")
 
   describe "separators", ->
     it "controls which characters are ignored between tokens", ->
@@ -139,10 +139,10 @@ describe "building a grammar", ->
       document.setLanguage(compiler.compileAndLoad(grammar))
 
       document.setInputString("hello.hello-hello")
-      assert.equal(document.toString(), "Document: (the_rule (word) (word) (word))")
+      assert.equal(document.toString(), "(DOCUMENT (the_rule (word) (word) (word)))")
 
       document.setInputString("hello hello")
-      assert.equal(document.toString(), "Document: (the_rule (word) (ERROR ' '))")
+      assert.equal(document.toString(), "(DOCUMENT (word) (ERROR ' '))")
 
     it "defaults to all whitespace characters", ->
       grammar = compiler.grammar
@@ -154,10 +154,10 @@ describe "building a grammar", ->
       document.setLanguage(compiler.compileAndLoad(grammar))
 
       document.setInputString("hello hello\thello\nhello\rhello")
-      assert.equal(document.toString(), "Document: (the_rule (word) (word) (word) (word) (word))")
+      assert.equal(document.toString(), "(DOCUMENT (the_rule (word) (word) (word) (word) (word)))")
 
       document.setInputString("hello.hello")
-      assert.equal(document.toString(), "Document: (the_rule (word) (ERROR '.'))")
+      assert.equal(document.toString(), "(DOCUMENT (word) (ERROR '.'))")
 
   describe "error handling", ->
     describe "when the grammar has no name", ->

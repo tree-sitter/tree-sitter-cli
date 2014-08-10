@@ -34,7 +34,7 @@ describe "Document", ->
     describe "when the input has not yet been set", ->
       it "doesn't try to parse", ->
         document.setLanguage(language)
-        assert.equal(null, document.rootNode())
+        assert.equal(null, document.children)
 
   describe "::setInput(input)", ->
     describe "when the language has been set", ->
@@ -58,7 +58,7 @@ describe "Document", ->
           _readIndex: 0,
         })
 
-        assert.equal("(sentence (word1) (word2))", document.rootNode().toString())
+        assert.equal("(DOCUMENT (sentence (word1) (word2)))", document.toString())
 
       describe "when the input.read() returns something other than a string", ->
         it "stops reading", ->
@@ -80,7 +80,7 @@ describe "Document", ->
 
           document.setInput(input)
 
-          assert.equal("(sentence (word1))", document.rootNode().toString())
+          assert.equal("(DOCUMENT (sentence (word1)))", document.toString())
           assert.equal(4, input._readIndex)
 
     describe "when the supplied object does not implement ::seek(n)", ->
@@ -105,7 +105,7 @@ describe "Document", ->
           read: -> ""
           seek: (n) -> 0
         })
-        assert.equal(null, document.rootNode())
+        assert.equal(null, document.children)
 
   describe "::edit({ position, bytesAdded, bytesRemoved })", ->
     input = null
@@ -130,8 +130,8 @@ describe "Document", ->
 
     precondition ->
       assert.equal(
-        "(sentence (word1) (word2) (word1))",
-        document.rootNode().toString())
+        "(DOCUMENT (sentence (word1) (word2) (word1)))",
+        document.toString())
 
     describe "when text is inserted", ->
       it "updates the parse tree", ->
@@ -142,8 +142,8 @@ describe "Document", ->
         )
 
         assert.equal(
-          document.rootNode().toString(),
-          "(sentence (word1) (word1) (word2) (word1))")
+          document.toString(),
+          "(DOCUMENT (sentence (word1) (word1) (word2) (word1)))")
 
     describe "when text is removed", ->
       it "updates the parse tree", ->
@@ -154,5 +154,5 @@ describe "Document", ->
         )
 
         assert.equal(
-          document.rootNode().toString(),
-          "(sentence (word1) (word1))")
+          document.toString(),
+          "(DOCUMENT (sentence (word1) (word1)))")
