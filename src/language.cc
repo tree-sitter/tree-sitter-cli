@@ -59,7 +59,7 @@ NAN_METHOD(LoadLanguage) {
     NULL
   });
   if (!error.empty()) {
-    NanThrowError(NanNew("Failed to compile C code - " + error));
+    NanThrowError(NanNew(("Failed to compile C code - " + error).c_str()));
     NanReturnUndefined();
   }
 
@@ -71,7 +71,7 @@ NAN_METHOD(LoadLanguage) {
     NULL
   });
   if (!error.empty()) {
-    NanThrowError(NanNew("Failed to link C code - " + error));
+    NanThrowError(NanNew(("Failed to link C code - " + error).c_str()));
     NanReturnUndefined();
   }
 
