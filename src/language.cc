@@ -2,6 +2,7 @@
 #include <uv.h>
 #include <string>
 #include "tree_sitter/runtime.h"
+#include "nan.h"
 #include <unistd.h>
 #include <sys/wait.h> 
 
@@ -36,8 +37,8 @@ static std::string run_cmd(const char *cmd, const char *args[]) {
   }
 }
 
-Handle<Value> LoadLanguage(const Arguments &args) {
-  HandleScope scope;
+NAN_METHOD(LoadLanguage) {
+  NanScope();
 
   Handle<String> js_src_filename = Handle<String>::Cast(args[0]);
   Handle<String> js_language_name = Handle<String>::Cast(args[1]);
@@ -58,8 +59,8 @@ Handle<Value> LoadLanguage(const Arguments &args) {
     NULL
   });
   if (!error.empty()) {
-    ThrowException(Exception::Error(String::New(("Failed to compile C code - " + error).c_str())));
-    return scope.Close(Undefined());
+    NanThrowError(NanNew("Failed to compile C code - " + error));
+    NanReturnUndefined();
   }
 
   error = run_cmd("gcc", (const char *[]){
@@ -70,48 +71,46 @@ Handle<Value> LoadLanguage(const Arguments &args) {
     NULL
   });
   if (!error.empty()) {
-    ThrowException(Exception::Error(String::New(("Failed to link C code" + error).c_str())));
-    return scope.Close(Undefined());
+    NanThrowError(NanNew("Failed to link C code - " + error));
+    NanReturnUndefined();
   }
 
   uv_lib_t parser_lib;
   int error_code = uv_dlopen(lib_filename.c_str(), &parser_lib);
   if (error_code) {
-    Handle<String> message = String::New(uv_dlerror(&parser_lib));
-    ThrowException(Exception::Error(
-        String::Concat(String::New("Couldn't open language file - "), message)));
-    return scope.Close(Undefined());
+    Handle<String> message = NanNew(uv_dlerror(&parser_lib));
+    NanThrowError(String::Concat(NanNew("Couldn't open language file - "), message));
+    NanReturnUndefined();
   }
 
   const TSLanguage * (* language_fn)() = NULL;
   error_code = uv_dlsym(&parser_lib, (std::string("ts_language_") + language_name).c_str(), (void **)&language_fn);
   if (error_code) {
-    Handle<String> message = String::New(uv_dlerror(&parser_lib));
-    ThrowException(Exception::Error(
-        String::Concat(String::New("Couldn't load language - "), message)));
-    return scope.Close(Undefined());
+    Handle<String> message = NanNew(uv_dlerror(&parser_lib));
+    NanThrowError(String::Concat(NanNew("Couldn't load language function - "), message));
+    NanReturnUndefined();
   }
 
   if (!language_fn) {
-    ThrowException(Exception::Error(String::New("Could not load language")));
-    return scope.Close(Undefined());
+    NanThrowError("Could not load language");
+    NanReturnUndefined();
   }
 
-  Local<Object> instance = constructor->NewInstance();
-  instance->SetInternalField(0, External::New((void *)language_fn()));
-  return scope.Close(instance);
+  Local<Object> instance = NanNew(constructor)->NewInstance();
+  NanSetInternalFieldPointer(instance, 0, (void *)language_fn());
+  NanReturnValue(instance);
 }
 
-static Handle<Value> NewLanguage(const Arguments &args) {
-  HandleScope scope;
-  return scope.Close(Undefined());
+NAN_METHOD(NewLanguage) {
+  NanScope();
+  NanReturnUndefined();
 }
 
 void InitLanguage(v8::Handle<v8::Object> exports) {
-  Local<FunctionTemplate> tpl = FunctionTemplate::New(NewLanguage);
-  tpl->SetClassName(String::NewSymbol("DynamicallyLoadedLanguage"));
+  Local<FunctionTemplate> tpl = NanNew<FunctionTemplate>(NewLanguage);
+  tpl->SetClassName(NanNew("DynamicallyLoadedLanguage"));
   tpl->InstanceTemplate()->SetInternalFieldCount(1);
-  constructor = Persistent<Function>::New(tpl->GetFunction());
+  NanAssignPersistent(constructor, tpl->GetFunction());
 }
 
 }  // namespace node_tree_sitter_compiler

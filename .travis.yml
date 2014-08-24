@@ -3,3 +3,4 @@ before_script:
   - script/get_edge_deps
 node_js:
   - "0.10"
+  - "0.11.13"

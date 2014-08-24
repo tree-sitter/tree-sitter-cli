@@ -5,6 +5,9 @@
       "dependencies": [
         "vendor/tree-sitter/project.gyp:compiler",
       ],
+      "include_dirs": [
+        "<!(node -e \"require('nan')\")",
+      ],
       "sources": [
         "src/binding.cc",
         "src/compile.cc",
