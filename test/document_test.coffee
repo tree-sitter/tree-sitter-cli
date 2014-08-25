@@ -3,9 +3,6 @@ compiler = require ".."
 { repeat, choice } = compiler.rules
 { Document } = require "tree-sitter"
 
-precondition = (f) ->
-  it "has the right precondition", f
-
 describe "Document", ->
   document = null
 
@@ -128,7 +125,6 @@ describe "Document", ->
       document.setLanguage(language)
       document.setInput(input)
 
-    precondition ->
       assert.equal(
         "(DOCUMENT (sentence (word1) (word2) (word1)))",
         document.toString())
