@@ -156,3 +156,11 @@ describe "Document", ->
         assert.equal(
           document.toString(),
           "(DOCUMENT (sentence (word1) (word1)))")
+
+  it "has all the same methods as AST nodes", ->
+    document.setLanguage(language)
+    document.setInputString("first-word")
+
+    node = document.children[0]
+    for methodName of node.constructor.prototype
+      document[methodName]()

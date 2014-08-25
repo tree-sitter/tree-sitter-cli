@@ -25,7 +25,7 @@ describe "ASTNode", ->
       .setLanguage(language)
       .setInputString("x10 + 1000")
 
-  describe "#children", ->
+  describe "::children", ->
     it "returns an array of child nodes", ->
       assert.equal(1, document.children.length)
 
@@ -39,16 +39,32 @@ describe "ASTNode", ->
       number = sum.children[1]
       assert.equal("number", number.name)
 
-  describe "#size", ->
+  describe "::size", ->
     it "returns the number of bytes spanned by the node", ->
       sum = document.children[0]
       assert.equal(10, sum.size)
       assert.equal(3, sum.children[0].size)
       assert.equal(4, sum.children[1].size)
 
-  describe "#position", ->
+  describe "::position", ->
     it "returns the number of bytes spanned by the node", ->
       sum = document.children[0]
       assert.equal(0, sum.position)
       assert.equal(0, sum.children[0].position)
       assert.equal(6, sum.children[1].position)
+
+  describe "::parent()", ->
+    it "returns the node's parent", ->
+      sum = document.children[0]
+      variable = sum.children[0]
+      assert.deepEqual(sum, variable.parent())
+
+  describe "::next()", ->
+    it "returns the node's next sibling", ->
+      sum = document.children[0]
+      assert.deepEqual(sum.children[1], sum.children[0].next())
+
+  describe "::prev()", ->
+    it "returns the node's previous sibling", ->
+      sum = document.children[0]
+      assert.deepEqual(sum.children[0], sum.children[1].prev())
