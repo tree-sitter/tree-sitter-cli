@@ -153,10 +153,48 @@ describe "Document", ->
           document.toString(),
           "(DOCUMENT (sentence (word1) (word1)))")
 
-  it "has all the same methods as AST nodes", ->
-    document.setLanguage(language)
-    document.setInputString("first-word")
+  describe "treating a document as an AST node", ->
+    rootNode = null
 
-    node = document.children[0]
-    for methodName of node.constructor.prototype
-      document[methodName]()
+    beforeEach ->
+      document.setLanguage(language)
+      document.setInputString("first-word")
+      rootNode = document.children[0]
+
+    it "implements all the same methods", ->
+      methods = []
+
+      methods.push('next')
+      assert.equal(null, document.next())
+
+      methods.push('nodeAt')
+      assert.deepEqual(rootNode.nodeAt(0), document.nodeAt(0))
+
+      methods.push('parent')
+      assert.equal(null, document.parent())
+
+      methods.push('prev')
+      assert.equal(null, document.prev())
+
+      methods.push('toString')
+      assert(document.toString().indexOf(rootNode.toString()) >= 0)
+
+      assert.deepEqual(methods, Object.keys(rootNode.constructor.prototype).sort())
+
+    it "has all the same properties", ->
+      properties = []
+
+      properties.push('children')
+      assert.equal(1, document.children.length)
+      assert.deepEqual(rootNode, document.children[0])
+
+      properties.push('name')
+      assert.equal("DOCUMENT", document.name)
+
+      properties.push('position')
+      assert.equal(0, document.position)
+
+      properties.push('size')
+      assert.equal(rootNode.size, document.size)
+
+      assert.deepEqual(properties.sort(), Object.keys(rootNode).sort())

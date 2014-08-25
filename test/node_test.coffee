@@ -68,3 +68,10 @@ describe "ASTNode", ->
     it "returns the node's previous sibling", ->
       sum = document.children[0]
       assert.deepEqual(sum.children[0], sum.children[1].prev())
+
+  describe "::node_at(position)", ->
+    describe "when there is a leaf node that spans the given range", ->
+      it "returns the leaf node", ->
+        sum = document.children[0]
+        variable = sum.nodeAt(1)
+        assert.equal('(variable)', variable.toString())
