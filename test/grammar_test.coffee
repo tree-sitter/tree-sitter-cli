@@ -1,6 +1,6 @@
 assert = require "assert"
 compiler = require ".."
-{ blank, choice, repeat, seq } = compiler.rules
+{ blank, choice, prec, repeat, seq } = compiler.rules
 { Document } = require "tree-sitter"
 
 describe "building a grammar", ->
@@ -111,6 +111,31 @@ describe "building a grammar", ->
 
         document.setInputString("one-two")
         assert.equal(document.toString(), "(DOCUMENT (the_rule (second_rule) (third_rule)))")
+
+    describe "prec", ->
+      it "alters the precedence of the given rule", ->
+        grammar = compiler.grammar
+          name: "test_grammar"
+          rules:
+            expression: -> choice(@sum, @product, @equation, @number)
+            sum: -> seq(@expression, "+", @expression)
+            product: -> prec(1, seq(@expression, "*", @expression))
+            equation: -> prec(-1, seq(@expression, "=", @expression))
+            number: -> /\d+/
+
+        document.setLanguage(compiler.compileAndLoad(grammar))
+
+        document.setInputString("1 + 2 * 3")
+        assert.equal(document.toString(), "(DOCUMENT (sum (number) (product (number) (number))))")
+
+        document.setInputString("1 * 2 + 3")
+        assert.equal(document.toString(), "(DOCUMENT (sum (product (number) (number)) (number)))")
+
+        document.setInputString("3 = 2 + 1")
+        assert.equal(document.toString(), "(DOCUMENT (equation (number) (sum (number) (number))))")
+
+        document.setInputString("1 + 2 = 3")
+        assert.equal(document.toString(), "(DOCUMENT (equation (sum (number) (number)) (number)))")
 
   describe "ubiquitous tokens", ->
     it "allows the given tokens to appear anywhere in the input", ->

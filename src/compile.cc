@@ -98,6 +98,14 @@ rule_ptr RuleFromJsRule(Handle<Object> js_rule) {
   if (type == "KEYWORD")
     return keyword(StringFromJsString(ObjectGet<String>(js_rule, "value")));
 
+  if (type == "PRECEDENCE") {
+    rule_ptr rule = RuleFromJsRule(ObjectGet<Object>(js_rule, "rule"));
+    if (rule.get())
+      return prec(ObjectGet<Integer>(js_rule, "value")->IntegerValue(), rule);
+    else
+      return rule_ptr();
+  }
+
   if (type == "TOKEN") {
     rule_ptr value = RuleFromJsRule(ObjectGet<Object>(js_rule, "value"));
     if (value.get())
@@ -109,7 +117,7 @@ rule_ptr RuleFromJsRule(Handle<Object> js_rule) {
   if (type == "SYMBOL")
     return sym(StringFromJsString(ObjectGet<String>(js_rule, "name")));
 
-  NanThrowError(String::Concat(NanNew("Unexpected rule type: "), js_type));
+  NanThrowError((string("Unexpected rule type: ") + type).c_str());
   return rule_ptr();
 }
 
