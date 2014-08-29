@@ -1,6 +1,6 @@
 assert = require "assert"
 compiler = require ".."
-{ blank, choice, prec, repeat, seq } = compiler.rules
+{ blank, choice, prec, err, repeat, seq } = compiler.rules
 { Document } = require "tree-sitter"
 
 describe "building a grammar", ->
@@ -127,15 +127,34 @@ describe "building a grammar", ->
 
         document.setInputString("1 + 2 * 3")
         assert.equal(document.toString(), "(DOCUMENT (sum (number) (product (number) (number))))")
-
         document.setInputString("1 * 2 + 3")
         assert.equal(document.toString(), "(DOCUMENT (sum (product (number) (number)) (number)))")
-
         document.setInputString("3 = 2 + 1")
         assert.equal(document.toString(), "(DOCUMENT (equation (number) (sum (number) (number))))")
-
         document.setInputString("1 + 2 = 3")
         assert.equal(document.toString(), "(DOCUMENT (equation (sum (number) (number)) (number)))")
+
+    describe "err", ->
+      it "confines errors to the given subtree", ->
+        grammar = compiler.grammar
+          name: "test_grammar"
+          rules:
+            the_rule: -> seq(@rule1, err(@rule2), @rule3, @rule4)
+            rule1: -> "string1"
+            rule2: -> "string2"
+            rule3: -> "string3"
+            rule4: -> "string4"
+
+        document.setLanguage(compiler.compileAndLoad(grammar))
+
+        document.setInputString("string1 SOMETHING_ELSE string3 string4")
+        assert.equal(
+          document.toString(),
+          "(DOCUMENT (the_rule (rule1) (ERROR 'S') (rule3) (rule4)))")
+        document.setInputString("string1 string2 SOMETHING_ELSE string4")
+        assert.equal(
+          document.toString(),
+          "(DOCUMENT (rule1) (rule2) (ERROR 'S'))")
 
   describe "ubiquitous tokens", ->
     it "allows the given tokens to appear anywhere in the input", ->
@@ -150,7 +169,9 @@ describe "building a grammar", ->
       document.setLanguage(compiler.compileAndLoad(grammar))
 
       document.setInputString("one two ... three ... four")
-      assert.equal(document.toString(), "(DOCUMENT (the_rule (word) (word) (ellipsis) (word) (ellipsis) (word)))")
+      assert.equal(
+        document.toString(),
+        "(DOCUMENT (the_rule (word) (word) (ellipsis) (word) (ellipsis) (word)))")
 
   describe "separators", ->
     it "controls which characters are ignored between tokens", ->
@@ -165,7 +186,6 @@ describe "building a grammar", ->
 
       document.setInputString("hello.hello-hello")
       assert.equal(document.toString(), "(DOCUMENT (the_rule (word) (word) (word)))")
-
       document.setInputString("hello hello")
       assert.equal(document.toString(), "(DOCUMENT (word) (ERROR ' '))")
 
@@ -180,7 +200,6 @@ describe "building a grammar", ->
 
       document.setInputString("hello hello\thello\nhello\rhello")
       assert.equal(document.toString(), "(DOCUMENT (the_rule (word) (word) (word) (word) (word)))")
-
       document.setInputString("hello.hello")
       assert.equal(document.toString(), "(DOCUMENT (word) (ERROR '.'))")
 
