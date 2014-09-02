@@ -106,7 +106,7 @@ describe "Document", ->
         })
         assert.equal(null, document.children)
 
-  describe.skip "::edit({ position, bytesAdded, bytesRemoved })", ->
+  describe "::edit({ position, bytesAdded, bytesRemoved })", ->
     input = null
 
     beforeEach ->
