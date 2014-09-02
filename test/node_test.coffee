@@ -9,8 +9,6 @@ describe "ASTNode", ->
   language = compiler.compileAndLoad(compiler.grammar
     name: "arithmetic"
 
-    ubiquitous: ["_whitespace"]
-
     rules:
       expression: -> choice(@sum, @difference, @product, @quotient, @number, @variable)
       sum: -> seq(@expression, "+", @expression)
@@ -19,14 +17,13 @@ describe "ASTNode", ->
       quotient: -> seq(@expression, "/", @expression)
       number: -> /\d+/
       variable: -> /\a\w+/
-      _whitespace: -> /\s/
   )
 
   beforeEach ->
     document = new Document()
     document
       .setLanguage(language)
-      .setInputString("x10+ 1000")
+      .setInputString("x10 + 1000")
 
   describe "::children", ->
     it "returns an array of child nodes", ->
@@ -45,7 +42,7 @@ describe "ASTNode", ->
   describe "::size", ->
     it "returns the number of bytes spanned by the node", ->
       sum = document.children[0]
-      assert.equal(9, sum.size)
+      assert.equal(10, sum.size)
       assert.equal(3, sum.children[0].size)
       assert.equal(4, sum.children[1].size)
 
@@ -54,7 +51,7 @@ describe "ASTNode", ->
       sum = document.children[0]
       assert.equal(0, sum.position)
       assert.equal(0, sum.children[0].position)
-      assert.equal(5, sum.children[1].position)
+      assert.equal(6, sum.children[1].position)
 
   describe "::parent()", ->
     it "returns the node's parent", ->

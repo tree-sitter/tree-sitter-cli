@@ -8,12 +8,10 @@ describe "Document", ->
 
   language = compiler.compileAndLoad(compiler.grammar
     name: "test"
-    ubiquitous: ["_space"]
     rules:
       sentence: -> repeat(choice(@word1, @word2))
       word1: -> "first-word"
       word2: -> "second-word"
-      _space: -> ' '
   )
 
   beforeEach ->
