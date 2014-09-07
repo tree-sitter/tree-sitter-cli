@@ -77,7 +77,7 @@ describe "Document", ->
 
           document.setInput(input)
 
-          assert.equal("(DOCUMENT (sentence (word1)))", document.toString())
+          assert.equal("(DOCUMENT (word1))", document.toString())
           assert.equal(4, input._readIndex)
 
     describe "when the supplied object does not implement ::seek(n)", ->
