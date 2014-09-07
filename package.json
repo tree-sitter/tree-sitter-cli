@@ -28,7 +28,8 @@
     "ncp": "0.6.0",
     "temp": "0.7.x",
     "tree-sitter": "*",
-    "vows": "0.7.x"
+    "vows": "0.7.x",
+    "yargs": "1.3.x"
   },
   "devDependencies": {
     "mocha": "1.17.x"

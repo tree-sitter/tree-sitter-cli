@@ -2,15 +2,18 @@
 
 var cli = require("./lib/cli"),
     path = require("path"),
-    command = process.argv[2];
+    argv = require("yargs").argv;
 
-switch (command) {
+switch (argv._[0]) {
   case "compile":
     cli.compile();
     break;
 
   case "test":
-    cli.test(process.exit);
+    cli.test({
+      focus: argv.f || argv.focus,
+      debug: argv.d || argv.debug
+    }, process.exit);
     break;
 
   case undefined:
