@@ -2,6 +2,7 @@ test
 
 out
 build
+*.xcodeproj
 
 vendor/tree-sitter/*
 !vendor/tree-sitter/src
