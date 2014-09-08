@@ -160,7 +160,7 @@ describe "building a grammar", ->
     it "allows the given tokens to appear anywhere in the input", ->
       grammar = compiler.grammar
         name: "test_grammar"
-        ubiquitous: ["ellipsis"]
+        ubiquitous: -> [@ellipsis, " "]
         rules:
           the_rule: -> repeat(@word)
           word: -> /\w+/
@@ -173,23 +173,22 @@ describe "building a grammar", ->
         document.toString(),
         "(DOCUMENT (the_rule (word) (word) (ellipsis) (word) (ellipsis) (word)))")
 
-  describe "separators", ->
-    it "controls which characters are ignored between tokens", ->
+    it "allows anonymous rules to be provided", ->
       grammar = compiler.grammar
         name: "test_grammar"
-        separators: [".", "-"]
+        ubiquitous: -> ["...", "---"]
         rules:
           the_rule: -> repeat(@word)
           word: -> "hello"
 
       document.setLanguage(compiler.compileAndLoad(grammar))
 
-      document.setInputString("hello.hello-hello")
+      document.setInputString("hello...hello---hello")
       assert.equal(document.toString(), "(DOCUMENT (the_rule (word) (word) (word)))")
       document.setInputString("hello hello")
       assert.equal(document.toString(), "(DOCUMENT (word) (ERROR ' '))")
 
-    it "defaults to all whitespace characters", ->
+    it "defaults to whitespace characters", ->
       grammar = compiler.grammar
         name: "test_grammar"
         rules:
@@ -210,18 +209,37 @@ describe "building a grammar", ->
           compiler.grammar
             rules:
               the_rule: -> blank()
-        ), /grammar.*name.*string/)
+        ), /Grammar.*name.*string/)
 
         assert.throws((->
           compiler.grammar
             name: {}
             rules:
               the_rule: -> blank()
-        ), /grammar.*name.*string/)
+        ), /Grammar.*name.*string/)
 
     describe "when the grammar has no rules", ->
       it "raises an error", ->
         assert.throws((->
           compiler.grammar
             name: "test_grammar"
-        ), /grammar.*rules.*object/)
+        ), /Grammar.*rules.*object/)
+
+    describe "when one of the grammar rules is not a function", ->
+      it "raises an error", ->
+        assert.throws((->
+          compiler.grammar
+            name: "test_grammar"
+            rules:
+              the_rule: blank()
+        ), /Grammar.*rule.*function.*the_rule/)
+
+    describe "when the grammar's ubiquitous value is not a function", ->
+      it "raises an error", ->
+        assert.throws((->
+          compiler.grammar
+            ubiquitous: []
+            name: "test_grammar"
+            rules:
+              the_rule: -> blank()
+        ), /Grammar.*ubiquitous.*function/)
