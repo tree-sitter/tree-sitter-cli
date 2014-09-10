@@ -1,6 +1,6 @@
 assert = require "assert"
 compiler = require ".."
-{ blank, choice, prec, err, repeat, seq } = compiler.rules
+{ blank, choice, prec, err, repeat, seq, sym } = compiler.rules
 { Document } = require "tree-sitter"
 
 describe "building a grammar", ->
@@ -243,3 +243,26 @@ describe "building a grammar", ->
             rules:
               the_rule: -> blank()
         ), /Grammar.*ubiquitous.*function/)
+
+    describe "when one of the grammar's ubiquitous tokens is not a token", ->
+      it "raises an error", ->
+        assert.throws((->
+          res = compiler.compile compiler.grammar
+            name: "test_grammar"
+            ubiquitous: -> [@yyy]
+            rules:
+              xxx: -> seq(@yyy, @yyy)
+              yyy: -> seq(@zzz, @zzz)
+              zzz: -> "zzz"
+          console.log "RES", res
+        ), /Not a token.*yyy/)
+
+    describe "when a symbol references an undefined rule", ->
+      it "raises an error", ->
+        assert.throws((->
+          res = compiler.compile compiler.grammar
+            name: "test_grammar"
+            rules:
+              xxx: -> sym("yyy")
+          console.log "RES", res
+        ), /Undefined.*rule.*yyy/)
