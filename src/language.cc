@@ -4,7 +4,7 @@
 #include "tree_sitter/runtime.h"
 #include "nan.h"
 #include <unistd.h>
-#include <sys/wait.h> 
+#include <sys/wait.h>
 
 using namespace v8;
 
@@ -59,7 +59,7 @@ NAN_METHOD(LoadLanguage) {
     NULL
   });
   if (!error.empty()) {
-    NanThrowError(NanNew(("Failed to compile C code - " + error).c_str()));
+    NanThrowError(("Failed to compile C code - " + error).c_str());
     NanReturnUndefined();
   }
 
@@ -71,23 +71,23 @@ NAN_METHOD(LoadLanguage) {
     NULL
   });
   if (!error.empty()) {
-    NanThrowError(NanNew(("Failed to link C code - " + error).c_str()));
+    NanThrowError(("Failed to link C code - " + error).c_str());
     NanReturnUndefined();
   }
 
   uv_lib_t parser_lib;
   int error_code = uv_dlopen(lib_filename.c_str(), &parser_lib);
   if (error_code) {
-    Handle<String> message = NanNew(uv_dlerror(&parser_lib));
-    NanThrowError(String::Concat(NanNew("Couldn't open language file - "), message));
+    std::string message(uv_dlerror(&parser_lib));
+    NanThrowError(("Couldn't open language file - " + message).c_str());
     NanReturnUndefined();
   }
 
   const TSLanguage * (* language_fn)() = NULL;
-  error_code = uv_dlsym(&parser_lib, (std::string("ts_language_") + language_name).c_str(), (void **)&language_fn);
+  error_code = uv_dlsym(&parser_lib, ("ts_language_" + language_name).c_str(), (void **)&language_fn);
   if (error_code) {
-    Handle<String> message = NanNew(uv_dlerror(&parser_lib));
-    NanThrowError(String::Concat(NanNew("Couldn't load language function - "), message));
+    std::string message(uv_dlerror(&parser_lib));
+    NanThrowError(("Couldn't load language function - " + message).c_str());
     NanReturnUndefined();
   }
 
