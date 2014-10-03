@@ -9,9 +9,12 @@ describe "Document", ->
   language = compiler.compileAndLoad(compiler.grammar
     name: "test"
     rules:
-      sentence: -> repeat(choice(@word1, @word2))
+      sentence: -> repeat(choice(@word1, @word2, @word3, @word4))
       word1: -> "first-word"
       word2: -> "second-word"
+
+      word3: -> "αβ"
+      word4: -> "αβδ"
   )
 
   beforeEach ->
@@ -104,7 +107,7 @@ describe "Document", ->
         })
         assert.equal(null, document.children)
 
-  describe "::edit({ position, bytesAdded, bytesRemoved })", ->
+  describe "::edit({ position, charsAdded, charsRemoved })", ->
     input = null
 
     beforeEach ->
@@ -134,7 +137,7 @@ describe "Document", ->
         input.text = "first-word first-word second-word first-word"
         document.edit(
           position: "first-word ".length
-          bytesInserted: "first-word ".length
+          charsInserted: "first-word ".length
         )
 
         assert.equal(
@@ -146,12 +149,32 @@ describe "Document", ->
         input.text = "first-word first-word"
         document.edit(
           position: "first-word ".length
-          bytesRemoved: "second-word ".length
+          charsRemoved: "second-word ".length
         )
 
         assert.equal(
           document.toString(),
           "(DOCUMENT (sentence (word1) (word1)))")
+
+    describe "when the text contains non-ascii characters", ->
+      beforeEach ->
+        input.text = "αβ αβ αβ"
+
+        document.setInput(input)
+        assert.equal(
+          document.toString(),
+          "(DOCUMENT (sentence (word3) (word3) (word3)))")
+
+      it "updates the parse tree correctly", ->
+        input.text = "αβδ αβ αβ"
+        document.edit(
+          position: 2
+          charsInserted: 1
+        )
+
+        assert.equal(
+          document.toString(),
+          "(DOCUMENT (sentence (word4) (word3) (word3)))")
 
   describe "treating a document as an AST node", ->
     rootNode = null
