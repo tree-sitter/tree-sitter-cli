@@ -12,7 +12,6 @@ describe "Document", ->
       sentence: -> repeat(choice(@word1, @word2, @word3, @word4))
       word1: -> "first-word"
       word2: -> "second-word"
-
       word3: -> "αβ"
       word4: -> "αβδ"
   )
@@ -175,6 +174,69 @@ describe "Document", ->
         assert.equal(
           document.toString(),
           "(DOCUMENT (sentence (word4) (word3) (word3)))")
+
+  describe "::debugParse(callback)", ->
+    debugCalls = null
+
+    beforeEach ->
+      debugCalls = []
+      document.setLanguage(language)
+      document.debugParse (msg, params) ->
+        debugCalls.push([msg, params])
+      
+    it "calls the given callback for each parse event", ->
+      document.setInputString("first-word second-word")
+
+      assert.deepEqual([
+        ["reduce", { sym: "sentence", count: "1" }]
+        ["shift", { state: "1" }],
+        ["accept", {}]
+      ], debugCalls.slice(-3))
+
+    describe "when given a falsy value", ->
+      beforeEach ->
+        document.debugParse(false)
+
+      it "disables debugging", ->
+        document.setInputString("first-word second-word")
+        assert.equal(0, debugCalls.length)
+
+    describe "when given a truthy value that isn't a function", ->
+      it "raises an exception", ->
+        assert.throws((->
+          document.debugParse("5")
+        ), /Debug callback must .* function .* falsy/)
+
+  describe "::debugLex(callback)", ->
+    debugCalls = null
+
+    beforeEach ->
+      debugCalls = []
+      document.setLanguage(language)
+      document.debugLex (msg, params) ->
+        debugCalls.push([msg, params])
+      
+    it "calls the given callback for each lex event", ->
+      document.setInputString("first-word second-word")
+
+      assert.deepEqual([
+        ['lookahead', { char: '0' }],
+        ['accept_token', { sym: 'end' }]
+      ], debugCalls.slice(-2))
+
+    describe "when given a falsy value", ->
+      beforeEach ->
+        document.debugLex(false)
+
+      it "disables debugging", ->
+        document.setInputString("first-word second-word")
+        assert.equal(0, debugCalls.length)
+
+    describe "when given a truthy value that isn't a function", ->
+      it "raises an exception", ->
+        assert.throws((->
+          document.debugLex("5")
+        ), /Debug callback must .* function .* falsy/)
 
   describe "treating a document as an AST node", ->
     rootNode = null
