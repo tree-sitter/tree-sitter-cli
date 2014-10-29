@@ -6,7 +6,9 @@ var cli = require("./lib/cli"),
 
 switch (argv._[0]) {
   case "compile":
-    cli.compile();
+    cli.compile({
+      verbose: argv.v || argv.verbose
+    });
     break;
 
   case "test":

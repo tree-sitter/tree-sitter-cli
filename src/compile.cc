@@ -180,7 +180,15 @@ NAN_METHOD(Compile) {
     NanReturnUndefined();
   }
 
-  NanReturnValue(NanNew(get<0>(result)));
+  Local<Array> conflicts = NanNew<Array>();
+  size_t i = 0;
+  for (Conflict conflict : get<1>(result))
+    conflicts->Set(NanNew<Integer>(i), NanNew<String>(conflict.description));
+
+  Local<Object> returnValue = NanNew<Object>();
+  returnValue->Set(NanNew("code"), NanNew(get<0>(result)));
+  returnValue->Set(NanNew("conflicts"), conflicts);
+  NanReturnValue(returnValue);
 }
 
 }  // namespace node_tree_sitter_compiler
