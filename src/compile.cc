@@ -179,9 +179,10 @@ NAN_METHOD(Compile) {
     NanThrowError(get<2>(result)->message.c_str());
 
   Local<Array> conflicts = NanNew<Array>();
-  size_t i = 0;
   for (Conflict conflict : get<1>(result))
-    conflicts->Set(NanNew<Integer>(i), NanNew<String>(conflict.description));
+    conflicts->Set(
+        NanNew<Integer>(conflicts->Length()),
+        NanNew<String>(conflict.description));
 
   Local<Object> returnValue = NanNew<Object>();
   returnValue->Set(NanNew("code"), NanNew(get<0>(result)));

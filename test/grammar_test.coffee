@@ -1,9 +1,9 @@
-assert = require "assert"
+{ assert } = require "chai"
 compiler = require ".."
 { blank, choice, prec, err, repeat, seq, sym } = compiler.rules
 { Document } = require "tree-sitter"
 
-describe "building a grammar", ->
+describe "Writing a grammar", ->
   document = null
 
   beforeEach ->
@@ -202,6 +202,18 @@ describe "building a grammar", ->
       document.setInputString("hello.hello")
       assert.equal(document.toString(), "(DOCUMENT (word) (ERROR '.'))")
 
+  describe "reporting conflicts", ->
+    it "returns a list of conflict descriptions", ->
+      { conflicts } = compiler.compile(compiler.grammar
+        name: "test_grammar"
+        rules:
+          sentence: -> choice(@first_rule, @second_rule)
+          first_rule: -> seq("things", "stuff")
+          second_rule: -> seq("things", "stuff"))
+
+      assert.equal(conflicts.length, 1)
+      assert.match(conflicts[0], /END_OF_INPUT: reduce first_rule .* reduce second_rule/)
+    
   describe "error handling", ->
     describe "when the grammar has no name", ->
       it "raises an error", ->
