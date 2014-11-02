@@ -46,6 +46,7 @@ static NAN_METHOD(Build) {
 }
 
 static NAN_METHOD(Setup) {
+  NanScope();
   NanAssignPersistent(symbol_fn, Handle<Function>::Cast(args[0]));
   NanReturnValue(NanNew<FunctionTemplate>(Build)->GetFunction());
 }
