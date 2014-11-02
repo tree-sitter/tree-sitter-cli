@@ -225,6 +225,16 @@ describe "building a grammar", ->
             name: "test_grammar"
         ), /Grammar.*rules.*object/)
 
+    describe "when the grammar contains a reference to an undefined rule", ->
+      it "throws an error with the rule name", ->
+        assert.throws((->
+          compiler.grammar
+            name: "test_grammar"
+            rules:
+              something: -> seq("(", @something_else, ")")
+
+        ), /Undefined.*rule.*something_else/)
+
     describe "when one of the grammar rules is not a function", ->
       it "raises an error", ->
         assert.throws((->

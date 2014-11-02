@@ -12,6 +12,7 @@
         "src/binding.cc",
         "src/compile.cc",
         "src/language.cc",
+        "src/rule_builder.cc",
       ],
       'conditions': [
         ['OS == "mac"', {

@@ -1,5 +1,6 @@
 #include "./compile.h"
 #include "./language.h"
+#include "./rule_builder.h"
 #include <node.h>
 #include <v8.h>
 #include "nan.h"
@@ -16,6 +17,7 @@ void InitAll(Handle<Object> exports) {
   exports->Set(
       NanNew("loadLanguage"),
       NanNew<FunctionTemplate>(LoadLanguage)->GetFunction());
+  rule_builder::Init(exports);
 }
 
 NODE_MODULE(tree_sitter_compiler_binding, InitAll)
