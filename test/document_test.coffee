@@ -202,6 +202,30 @@ describe "Document", ->
           document.setDebug("5")
         ), /Debug callback must .* function .* falsy/)
 
+    describe "when the given callback throws an exception", ->
+      [errorMessages, originalConsoleError, thrownError] = []
+
+      beforeEach ->
+        errorMessages = []
+        thrownError = new Error("dang.")
+
+        originalConsoleError = console.error
+        console.error = (params...) ->
+          errorMessages.push(params)
+
+        document.setDebug (msg, params) ->
+          throw thrownError
+
+      afterEach ->
+        console.error = originalConsoleError
+
+      it "logs the error to the console", ->
+        document.setInputString("first-word")
+        assert.deepEqual(errorMessages[0], [
+          "Error in debug callback:",
+          thrownError
+        ])
+
   describe "treating a document as an AST node", ->
     rootNode = null
 

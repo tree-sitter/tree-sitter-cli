@@ -212,7 +212,7 @@ describe "Writing a grammar", ->
           second_rule: -> seq("things", "stuff"))
 
       assert.equal(conflicts.length, 1)
-      assert.match(conflicts[0], /END_OF_INPUT: reduce first_rule .* reduce second_rule/)
+      assert.match(conflicts[0], /END_OF_INPUT: .*reduce .* reduce/)
     
   describe "error handling", ->
     describe "when the grammar has no name", ->
