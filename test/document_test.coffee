@@ -1,4 +1,4 @@
-assert = require "assert"
+{ assert } = require "chai"
 compiler = require ".."
 { repeat, choice } = compiler.rules
 { Document } = require "tree-sitter"
@@ -176,22 +176,17 @@ describe "Document", ->
           "(DOCUMENT (sentence (word4) (word3) (word3)))")
 
   describe "::setDebug(callback)", ->
-    debugCalls = null
+    debugMessages = null
 
     beforeEach ->
-      debugCalls = []
+      debugMessages = []
       document.setLanguage(language)
       document.setDebug (msg, params) ->
-        debugCalls.push([msg, params])
-      
+        debugMessages.push(msg)
+
     it "calls the given callback for each parse event", ->
       document.setInputString("first-word second-word")
-
-      assert.deepEqual([
-        ["reduce",{"sym":"sentence","count":"1"}],
-        ["shift",{"state":"1"}],
-        ["accept",{}]
-      ], debugCalls.slice(-3))
+      assert.includeMembers(debugMessages, ['reduce', 'accept', 'shift'])
 
     describe "when given a falsy value", ->
       beforeEach ->
@@ -199,7 +194,7 @@ describe "Document", ->
 
       it "disables debugging", ->
         document.setInputString("first-word second-word")
-        assert.equal(0, debugCalls.length)
+        assert.equal(0, debugMessages.length)
 
     describe "when given a truthy value that isn't a function", ->
       it "raises an exception", ->
