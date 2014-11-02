@@ -175,10 +175,8 @@ NAN_METHOD(Compile) {
     NanReturnUndefined();
 
   tuple<string, vector<Conflict>, const GrammarError *> result = tree_sitter::compile(grammarResult.first, name);
-  if (get<2>(result)) {
+  if (get<2>(result))
     NanThrowError(get<2>(result)->message.c_str());
-    NanReturnUndefined();
-  }
 
   Local<Array> conflicts = NanNew<Array>();
   size_t i = 0;

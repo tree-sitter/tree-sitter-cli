@@ -58,10 +58,8 @@ NAN_METHOD(LoadLanguage) {
     "-o", obj_filename.c_str(),
     NULL
   });
-  if (!error.empty()) {
+  if (!error.empty())
     NanThrowError(("Failed to compile C code - " + error).c_str());
-    NanReturnUndefined();
-  }
 
   error = run_cmd("gcc", (const char *[]){
     "gcc",
@@ -70,17 +68,14 @@ NAN_METHOD(LoadLanguage) {
     "-o", lib_filename.c_str(),
     NULL
   });
-  if (!error.empty()) {
+  if (!error.empty())
     NanThrowError(("Failed to link C code - " + error).c_str());
-    NanReturnUndefined();
-  }
 
   uv_lib_t parser_lib;
   int error_code = uv_dlopen(lib_filename.c_str(), &parser_lib);
   if (error_code) {
     std::string message(uv_dlerror(&parser_lib));
     NanThrowError(("Couldn't open language file - " + message).c_str());
-    NanReturnUndefined();
   }
 
   const TSLanguage * (* language_fn)() = NULL;
@@ -88,13 +83,10 @@ NAN_METHOD(LoadLanguage) {
   if (error_code) {
     std::string message(uv_dlerror(&parser_lib));
     NanThrowError(("Couldn't load language function - " + message).c_str());
-    NanReturnUndefined();
   }
 
-  if (!language_fn) {
+  if (!language_fn)
     NanThrowError("Could not load language");
-    NanReturnUndefined();
-  }
 
   Local<Object> instance = NanNew(constructor)->NewInstance();
   NanSetInternalFieldPointer(instance, 0, (void *)language_fn());
