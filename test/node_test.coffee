@@ -4,20 +4,21 @@ compiler = require ".."
 { Document } = require "tree-sitter"
 
 describe "ASTNode", ->
-  document = null
+  [document, language] = []
 
-  language = compiler.compileAndLoad(compiler.grammar
-    name: "arithmetic"
+  before ->
+    language = compiler.compileAndLoad(compiler.grammar
+      name: "arithmetic"
 
-    rules:
-      expression: -> choice(@sum, @difference, @product, @quotient, @number, @variable)
-      sum: -> seq(@expression, "+", @expression)
-      difference: -> seq(@expression, "-", @expression)
-      product: -> seq(@expression, "*", @expression)
-      quotient: -> seq(@expression, "/", @expression)
-      number: -> /\d+/
-      variable: -> /\a\w+/
-  )
+      rules:
+        expression: -> choice(@sum, @difference, @product, @quotient, @number, @variable)
+        sum: -> seq(@expression, "+", @expression)
+        difference: -> seq(@expression, "-", @expression)
+        product: -> seq(@expression, "*", @expression)
+        quotient: -> seq(@expression, "/", @expression)
+        number: -> /\d+/
+        variable: -> /\a\w+/
+    )
 
   beforeEach ->
     document = new Document()

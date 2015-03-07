@@ -4,17 +4,18 @@ compiler = require ".."
 { Document } = require "tree-sitter"
 
 describe "Document", ->
-  document = null
+  [document, language] = []
 
-  language = compiler.compileAndLoad(compiler.grammar
-    name: "test"
-    rules:
-      sentence: -> repeat(choice(@word1, @word2, @word3, @word4))
-      word1: -> "first-word"
-      word2: -> "second-word"
-      word3: -> "αβ"
-      word4: -> "αβδ"
-  )
+  before ->
+    language = compiler.compileAndLoad(compiler.grammar
+      name: "test"
+      rules:
+        sentence: -> repeat(choice(@word1, @word2, @word3, @word4))
+        word1: -> "first-word"
+        word2: -> "second-word"
+        word3: -> "αβ"
+        word4: -> "αβδ"
+    )
 
   beforeEach ->
     document = new Document()
