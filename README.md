@@ -12,43 +12,44 @@ npm install tree-sitter-compiler
 
 ### Creating a language
 
-Create a `grammar.coffee` in the root directory of your module. This file should
-export a `tree-sitter` grammar object:
+Create a `grammar.coffee` in the root directory of your module. This file
+should export a single function that takes an object containing the rule
+builder functions, and returns an object describing the language's grammar:
 
 ```coffee-script
-compiler = require "tree-sitter-compiler"
-{ choice, repeat, seq } = compiler.rules
+module.exports =
+({choice, repeat, seq}) ->
+  {
+    name: "arithmetic"
 
-module.exports = compiler.grammar
-  name: "arithmetic"
+    ubiquitous: -> [@comment, /\s/]
 
-  ubiquitous: -> [@comment, /\s/]
+    rules:
+      program: -> repeat(choice(
+        @assignment,
+        @expression_statement))
 
-  rules:
-    program: -> repeat(choice(
-      @assignment,
-      @expression_statement))
+      assignment: -> seq(
+        @variable, "=", @expression, ";")
 
-    assignment: -> seq(
-      @variable, "=", @expression, ";")
+      expression_statement: -> seq(
+        @expression, ";")
 
-    expression_statement: -> seq(
-      @expression, ";")
+      expression: -> choice(
+        @variable,
+        @number,
+        prec(1, seq(@expression, "+", @expression)),
+        prec(1, seq(@expression, "-", @expression)),
+        prec(2, seq(@expression, "*", @expression)),
+        prec(2, seq(@expression, "/", @expression)),
+        prec(3, seq(@expression, "^", @expression)))
 
-    expression: -> choice(
-      @variable,
-      @number,
-      prec(1, seq(@expression, "+", @expression)),
-      prec(1, seq(@expression, "-", @expression)),
-      prec(2, seq(@expression, "*", @expression)),
-      prec(2, seq(@expression, "/", @expression)),
-      prec(3, seq(@expression, "^", @expression)))
+      variable: -> /\a\w+/
 
-    variable: -> /\a\w+/
+      number: -> /\d+/
 
-    number: -> /\d+/
-
-    comment: -> /#.*/
+      comment: -> /#.*/
+  }
 ```
 
 Run `tree-sitter compile`. This will generate a C function for parsing your
@@ -57,7 +58,7 @@ binding.gyp` file for compiling these sources into a native node module.
 
 #### Grammar syntax
 
-The `grammar` function takes an object with the following keys:
+The `grammar` has the following keys:
 
 * `name` - the name of the language.
 * `rules` - a map of names to grammar rules. The first key in the map will be
