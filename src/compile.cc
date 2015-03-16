@@ -8,12 +8,10 @@ namespace node_tree_sitter_compiler {
 using namespace v8;
 using namespace tree_sitter::rules;
 using tree_sitter::Grammar;
-using tree_sitter::Conflict;
 using tree_sitter::GrammarError;
 using std::string;
 using std::get;
 using std::pair;
-using std::tuple;
 using std::vector;
 using std::set;
 
@@ -174,20 +172,11 @@ NAN_METHOD(Compile) {
   if (!grammarResult.second)
     NanReturnUndefined();
 
-  tuple<string, vector<Conflict>, const GrammarError *> result = tree_sitter::compile(grammarResult.first, name);
-  if (get<2>(result))
-    NanThrowError(get<2>(result)->message.c_str());
+  pair<string, const GrammarError *> result = tree_sitter::compile(grammarResult.first, name);
+  if (result.second)
+    NanThrowError(result.second->message.c_str());
 
-  Local<Array> conflicts = NanNew<Array>();
-  for (Conflict conflict : get<1>(result))
-    conflicts->Set(
-        NanNew<Integer>(conflicts->Length()),
-        NanNew<String>(conflict.description));
-
-  Local<Object> returnValue = NanNew<Object>();
-  returnValue->Set(NanNew("code"), NanNew(get<0>(result)));
-  returnValue->Set(NanNew("conflicts"), conflicts);
-  NanReturnValue(returnValue);
+  NanReturnValue(NanNew(result.first));
 }
 
 }  // namespace node_tree_sitter_compiler

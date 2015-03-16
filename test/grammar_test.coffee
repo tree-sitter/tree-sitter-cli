@@ -202,19 +202,18 @@ describe "Writing a grammar", ->
       document.setInputString("hello.hello")
       assert.equal(document.toString(), "(DOCUMENT (word) (ERROR '.'))")
 
-  describe "reporting conflicts", ->
-    it "returns a list of conflict descriptions", ->
-      { conflicts } = compiler.compile(compiler.grammar
-        name: "test_grammar"
-        rules:
-          sentence: -> choice(@first_rule, @second_rule)
-          first_rule: -> seq("things", "stuff")
-          second_rule: -> seq("things", "stuff"))
-
-      assert.equal(conflicts.length, 1)
-      assert.match(conflicts[0], /END_OF_INPUT: .*reduce .* reduce/)
-    
   describe "error handling", ->
+    describe "when the grammar has conflicts", ->
+      it "raises an error describing the conflict", ->
+        assert.throws((->
+          compiler.compile(compiler.grammar
+            name: "test_grammar"
+            rules:
+              sentence: -> choice(@first_rule, @second_rule)
+              first_rule: -> seq("things", "stuff")
+              second_rule: -> seq("things", "stuff"))
+        ), /END_OF_INPUT: .*reduce .* reduce/)
+
     describe "when the grammar has no name", ->
       it "raises an error", ->
         assert.throws((->
