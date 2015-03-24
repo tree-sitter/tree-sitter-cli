@@ -1,6 +1,6 @@
 assert = require "assert"
 compiler = require ".."
-{ seq, choice } = compiler.rules
+{ seq, choice, prec } = compiler.rules
 { Document } = require "tree-sitter"
 
 describe "ASTNode", ->
@@ -12,10 +12,10 @@ describe "ASTNode", ->
 
       rules:
         expression: -> choice(@sum, @difference, @product, @quotient, @number, @variable)
-        sum: -> seq(@expression, "+", @expression)
-        difference: -> seq(@expression, "-", @expression)
-        product: -> seq(@expression, "*", @expression)
-        quotient: -> seq(@expression, "/", @expression)
+        sum: -> prec.left(0, seq(@expression, "+", @expression))
+        difference: -> prec.left(0, seq(@expression, "-", @expression))
+        product: -> prec.left(1, seq(@expression, "*", @expression))
+        quotient: -> prec.left(1, seq(@expression, "/", @expression))
         number: -> /\d+/
         variable: -> /\a\w+/
     )

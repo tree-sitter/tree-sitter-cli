@@ -88,13 +88,18 @@ rule_ptr RuleFromJsRule(Handle<Object> js_rule) {
   if (type == "STRING")
     return str(StringFromJsString(ObjectGet<String>(js_rule, "value")));
 
-  if (type == "KEYWORD")
-    return keyword(StringFromJsString(ObjectGet<String>(js_rule, "value")));
-
-  if (type == "PRECEDENCE") {
+  if (type == "PREC_LEFT") {
     rule_ptr rule = RuleFromJsRule(ObjectGet<Object>(js_rule, "rule"));
     if (rule.get())
-      return prec(ObjectGet<Integer>(js_rule, "value")->IntegerValue(), rule);
+      return prec(ObjectGet<Integer>(js_rule, "value")->IntegerValue(), rule, AssociativityLeft);
+    else
+      return rule_ptr();
+  }
+
+  if (type == "PREC_RIGHT") {
+    rule_ptr rule = RuleFromJsRule(ObjectGet<Object>(js_rule, "rule"));
+    if (rule.get())
+      return prec(ObjectGet<Integer>(js_rule, "value")->IntegerValue(), rule, AssociativityRight);
     else
       return rule_ptr();
   }

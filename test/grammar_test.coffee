@@ -113,26 +113,33 @@ describe "Writing a grammar", ->
         assert.equal(document.toString(), "(DOCUMENT (the_rule (second_rule) (third_rule)))")
 
     describe "prec", ->
-      it "alters the precedence of the given rule", ->
+      it "alters the precedence and associativity of the given rule", ->
         grammar = compiler.grammar
           name: "test_grammar"
           rules:
-            expression: -> choice(@sum, @product, @equation, @number)
-            sum: -> seq(@expression, "+", @expression)
-            product: -> prec(1, seq(@expression, "*", @expression))
-            equation: -> prec(-1, seq(@expression, "=", @expression))
-            number: -> /\d+/
+            expression: -> choice(@sum, @product, @equation, @variable)
+            product: -> prec(2, seq(@expression, "*", @expression))
+            sum: -> prec.left(1, seq(@expression, "+", @expression))
+            equation: -> prec.right(0, seq(@expression, "=", @expression))
+            variable: -> /\a+/
 
         document.setLanguage(compiler.compileAndLoad(grammar))
 
-        document.setInputString("1 + 2 * 3")
-        assert.equal(document.toString(), "(DOCUMENT (sum (number) (product (number) (number))))")
-        document.setInputString("1 * 2 + 3")
-        assert.equal(document.toString(), "(DOCUMENT (sum (product (number) (number)) (number)))")
-        document.setInputString("3 = 2 + 1")
-        assert.equal(document.toString(), "(DOCUMENT (equation (number) (sum (number) (number))))")
-        document.setInputString("1 + 2 = 3")
-        assert.equal(document.toString(), "(DOCUMENT (equation (sum (number) (number)) (number)))")
+        # product has higher precedence than sum
+        document.setInputString("a + b * c")
+        assert.equal(document.toString(), "(DOCUMENT (sum (variable) (product (variable) (variable))))")
+        document.setInputString("a * b + c")
+        assert.equal(document.toString(), "(DOCUMENT (sum (product (variable) (variable)) (variable)))")
+
+        # product and sum are left-associative
+        document.setInputString("a * b * c")
+        assert.equal(document.toString(), "(DOCUMENT (product (product (variable) (variable)) (variable)))")
+        document.setInputString("a + b + c")
+        assert.equal(document.toString(), "(DOCUMENT (sum (sum (variable) (variable)) (variable)))")
+
+        # equation is right-associative
+        document.setInputString("a = b = c")
+        assert.equal(document.toString(), "(DOCUMENT (equation (variable) (equation (variable) (variable))))")
 
     describe "err", ->
       it "confines errors to the given subtree", ->
@@ -212,7 +219,7 @@ describe "Writing a grammar", ->
               sentence: -> choice(@first_rule, @second_rule)
               first_rule: -> seq("things", "stuff")
               second_rule: -> seq("things", "stuff"))
-        ), /END_OF_INPUT: .*reduce .* reduce/)
+        ), /END_OF_INPUT(.|[\n])*Reduce(.|[\n])*Reduce/)
 
     describe "when the grammar has no name", ->
       it "raises an error", ->
