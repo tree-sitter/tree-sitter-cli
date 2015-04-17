@@ -3,5 +3,4 @@ language: node_js
 before_install:
   - script/get_edge_deps
 node_js:
-  - "0.10"
-  - "0.11.13"
+  - "0.12"
