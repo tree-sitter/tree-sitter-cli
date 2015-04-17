@@ -212,14 +212,18 @@ describe "Writing a grammar", ->
   describe "error handling", ->
     describe "when the grammar has conflicts", ->
       it "raises an error describing the conflict", ->
-        assert.throws((->
-          compiler.compile(compiler.grammar
+        try
+          compiler.compile compiler.grammar
             name: "test_grammar"
             rules:
               sentence: -> choice(@first_rule, @second_rule)
               first_rule: -> seq("things", "stuff")
-              second_rule: -> seq("things", "stuff"))
-        ), /END_OF_INPUT(.|[\n])*Reduce(.|[\n])*Reduce/)
+              second_rule: -> seq("things", "stuff")
+        catch e
+          assert.match(e.message, /END_OF_INPUT(.|[\n])*Reduce(.|[\n])*Reduce/)
+          assert.property(e, "isGrammarError")
+          threw = true
+        assert.ok(threw, "Expected an exception!")
 
     describe "when the grammar has no name", ->
       it "raises an error", ->
@@ -274,23 +278,25 @@ describe "Writing a grammar", ->
 
     describe "when one of the grammar's ubiquitous tokens is not a token", ->
       it "raises an error", ->
-        assert.throws((->
-          res = compiler.compile compiler.grammar
+        try
+          compiler.compile compiler.grammar
             name: "test_grammar"
             ubiquitous: -> [@yyy]
             rules:
               xxx: -> seq(@yyy, @yyy)
               yyy: -> seq(@zzz, @zzz)
               zzz: -> "zzz"
-          console.log "RES", res
-        ), /Not a token.*yyy/)
+        catch e
+          assert.match(e.message, /Not a token.*yyy/)
+          assert.property(e, "isGrammarError")
+          threw = true
+        assert.ok(threw, "Expected an exception!")
 
     describe "when a symbol references an undefined rule", ->
       it "raises an error", ->
         assert.throws((->
-          res = compiler.compile compiler.grammar
+          compiler.compile compiler.grammar
             name: "test_grammar"
             rules:
               xxx: -> sym("yyy")
-          console.log "RES", res
         ), /Undefined.*rule.*yyy/)

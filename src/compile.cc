@@ -178,8 +178,11 @@ NAN_METHOD(Compile) {
     NanReturnUndefined();
 
   pair<string, const GrammarError *> result = tree_sitter::compile(grammarResult.first, name);
-  if (result.second)
-    NanThrowError(result.second->message.c_str());
+  if (result.second) {
+    Local<Value> error = NanError(result.second->message.c_str());
+    Local<Object>::Cast(error)->Set(NanNew("isGrammarError"), NanTrue());
+    NanThrowError(error);
+  }
 
   NanReturnValue(NanNew(result.first));
 }
