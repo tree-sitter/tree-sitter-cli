@@ -6,7 +6,7 @@ var cli = require("./lib/cli"),
 
 switch (argv._[0]) {
   case "compile":
-    cli.compile();
+    process.exit(cli.compile());
     break;
 
   case "test":
