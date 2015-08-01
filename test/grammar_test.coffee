@@ -22,7 +22,7 @@ describe "Writing a grammar", ->
         document.setInputString("")
         assert.equal(document.toString(), "(DOCUMENT (the_rule))")
         document.setInputString("not-blank")
-        assert.equal(document.toString(), "(DOCUMENT (ERROR 'n'))")
+        assert.equal(document.toString(), "(DOCUMENT (ERROR (UNEXPECTED 'n')))")
 
     describe "string", ->
       it "matches one particular string", ->
@@ -36,7 +36,7 @@ describe "Writing a grammar", ->
         document.setInputString("the-string")
         assert.equal(document.toString(), "(DOCUMENT (the_rule))")
         document.setInputString("another-string")
-        assert.equal(document.toString(), "(DOCUMENT (ERROR 'a'))")
+        assert.equal(document.toString(), "(DOCUMENT (ERROR (UNEXPECTED 'a')))")
 
     describe "regex", ->
       it "matches according to a regular expression", ->
@@ -50,7 +50,7 @@ describe "Writing a grammar", ->
         document.setInputString("abcba")
         assert.equal(document.toString(), "(DOCUMENT (the_rule))")
         document.setInputString("def")
-        assert.equal(document.toString(), "(DOCUMENT (ERROR 'd'))")
+        assert.equal(document.toString(), "(DOCUMENT (ERROR (UNEXPECTED 'd')))")
 
     describe "repeat", ->
       it "applies the given rule any number of times", ->
@@ -80,9 +80,9 @@ describe "Writing a grammar", ->
         document.setInputString("123")
         assert.equal(document.toString(), "(DOCUMENT (the_rule))")
         document.setInputString("12")
-        assert.equal(document.toString(), "(DOCUMENT (ERROR <EOF>))")
+        assert.equal(document.toString(), "(DOCUMENT (ERROR (UNEXPECTED <EOF>)))")
         document.setInputString("1234")
-        assert.equal(document.toString(), "(DOCUMENT (ERROR '4'))")
+        assert.equal(document.toString(), "(DOCUMENT (ERROR (UNEXPECTED '4')))")
 
     describe "choice", ->
       it "applies any of a list of rules", ->
@@ -96,7 +96,7 @@ describe "Writing a grammar", ->
         document.setInputString("1")
         assert.equal(document.toString(), "(DOCUMENT (the_rule))")
         document.setInputString("4")
-        assert.equal(document.toString(), "(DOCUMENT (ERROR '4'))")
+        assert.equal(document.toString(), "(DOCUMENT (ERROR (UNEXPECTED '4')))")
 
     describe "symbol", ->
       it "applies another rule in the grammar by name", ->
@@ -157,11 +157,11 @@ describe "Writing a grammar", ->
         document.setInputString("string1 SOMETHING_ELSE string3 string4")
         assert.equal(
           document.toString(),
-          "(DOCUMENT (the_rule (rule1) (ERROR 'S') (rule3) (rule4)))")
+          "(DOCUMENT (the_rule (rule1) (ERROR (UNEXPECTED 'S')) (rule3) (rule4)))")
         document.setInputString("string1 string2 SOMETHING_ELSE string4")
         assert.equal(
           document.toString(),
-          "(DOCUMENT (rule1) (rule2) (ERROR 'S'))")
+          "(DOCUMENT (rule1) (rule2) (ERROR (UNEXPECTED 'S') (rule4)))")
 
   describe "ubiquitous tokens", ->
     it "allows the given tokens to appear anywhere in the input", ->
@@ -193,7 +193,7 @@ describe "Writing a grammar", ->
       document.setInputString("hello...hello---hello")
       assert.equal(document.toString(), "(DOCUMENT (the_rule (word) (word) (word)))")
       document.setInputString("hello hello")
-      assert.equal(document.toString(), "(DOCUMENT (word) (ERROR ' '))")
+      assert.equal(document.toString(), "(DOCUMENT (word) (ERROR (UNEXPECTED ' ') (word)))")
 
     it "defaults to whitespace characters", ->
       grammar = compiler.grammar
@@ -207,7 +207,7 @@ describe "Writing a grammar", ->
       document.setInputString("hello hello\thello\nhello\rhello")
       assert.equal(document.toString(), "(DOCUMENT (the_rule (word) (word) (word) (word) (word)))")
       document.setInputString("hello.hello")
-      assert.equal(document.toString(), "(DOCUMENT (word) (ERROR '.'))")
+      assert.equal(document.toString(), "(DOCUMENT (word) (ERROR (UNEXPECTED '.') (word)))")
 
   describe "error handling", ->
     describe "when the grammar has conflicts", ->
