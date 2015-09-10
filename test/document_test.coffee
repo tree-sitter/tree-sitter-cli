@@ -58,7 +58,7 @@ describe "Document", ->
           _readIndex: 0,
         })
 
-        assert.equal("(DOCUMENT (sentence (word1) (word2)))", document.toString())
+        assert.equal("(sentence (word1) (word2))", document.rootNode.toString())
 
       describe "when the input.read() returns something other than a string", ->
         it "stops reading", ->
@@ -80,7 +80,7 @@ describe "Document", ->
 
           document.setInput(input)
 
-          assert.equal("(DOCUMENT (word1))", document.toString())
+          assert.equal("(sentence (word1))", document.rootNode.toString())
           assert.equal(4, input._readIndex)
 
     describe "when the supplied object does not implement ::seek(n)", ->
@@ -129,8 +129,8 @@ describe "Document", ->
       document.setInput(input)
 
       assert.equal(
-        "(DOCUMENT (sentence (word1) (word2) (word1)))",
-        document.toString())
+        "(sentence (word1) (word2) (word1))",
+        document.rootNode.toString())
 
     describe "when text is inserted", ->
       it "updates the parse tree", ->
@@ -141,8 +141,8 @@ describe "Document", ->
         )
 
         assert.equal(
-          document.toString(),
-          "(DOCUMENT (sentence (word1) (word1) (word2) (word1)))")
+          document.rootNode.toString(),
+          "(sentence (word1) (word1) (word2) (word1))")
 
     describe "when text is removed", ->
       it "updates the parse tree", ->
@@ -153,8 +153,8 @@ describe "Document", ->
         )
 
         assert.equal(
-          document.toString(),
-          "(DOCUMENT (sentence (word1) (word1)))")
+          document.rootNode.toString(),
+          "(sentence (word1) (word1))")
 
     describe "when the text contains non-ascii characters", ->
       beforeEach ->
@@ -162,8 +162,8 @@ describe "Document", ->
 
         document.setInput(input)
         assert.equal(
-          document.toString(),
-          "(DOCUMENT (sentence (word3) (word3) (word3)))")
+          document.rootNode.toString(),
+          "(sentence (word3) (word3) (word3))")
 
       it "updates the parse tree correctly", ->
         input.text = "αβδ αβ αβ"
@@ -173,8 +173,20 @@ describe "Document", ->
         )
 
         assert.equal(
-          document.toString(),
-          "(DOCUMENT (sentence (word4) (word3) (word3)))")
+          document.rootNode.toString(),
+          "(sentence (word4) (word3) (word3))")
+
+    it "invalidates nodes from previous parses", ->
+      input.text = input.text.slice(1)
+
+      oldRootNode = document.rootNode
+      assert.equal(oldRootNode.isValid(), true)
+
+      document.edit(position: 0, charsRemoved: 1)
+      assert.equal(oldRootNode.isValid(), false)
+      assert.equal(oldRootNode.name, null)
+      assert.equal(oldRootNode.position, null)
+      assert.equal(oldRootNode.size, null)
 
   describe "::setDebug(callback)", ->
     debugMessages = null
@@ -182,7 +194,7 @@ describe "Document", ->
     beforeEach ->
       debugMessages = []
       document.setLanguage(language)
-      document.setDebug (msg, params) ->
+      document.setDebugger (msg, params) ->
         debugMessages.push(msg)
 
     it "calls the given callback for each parse event", ->
@@ -191,7 +203,7 @@ describe "Document", ->
 
     describe "when given a falsy value", ->
       beforeEach ->
-        document.setDebug(false)
+        document.setDebugger(false)
 
       it "disables debugging", ->
         document.setInputString("first-word second-word")
@@ -200,7 +212,7 @@ describe "Document", ->
     describe "when given a truthy value that isn't a function", ->
       it "raises an exception", ->
         assert.throws((->
-          document.setDebug("5")
+          document.setDebugger("5")
         ), /Debug callback must .* function .* falsy/)
 
     describe "when the given callback throws an exception", ->
@@ -214,7 +226,7 @@ describe "Document", ->
         console.error = (params...) ->
           errorMessages.push(params)
 
-        document.setDebug (msg, params) ->
+        document.setDebugger (msg, params) ->
           throw thrownError
 
       afterEach ->
@@ -226,49 +238,3 @@ describe "Document", ->
           "Error in debug callback:",
           thrownError
         ])
-
-  describe "treating a document as an AST node", ->
-    rootNode = null
-
-    beforeEach ->
-      document.setLanguage(language)
-      document.setInputString("first-word")
-      rootNode = document.children[0]
-
-    it "implements all the same methods", ->
-      methods = []
-
-      methods.push('next')
-      assert.equal(null, document.next())
-
-      methods.push('nodeAt')
-      assert.deepEqual(rootNode.nodeAt(0), document.nodeAt(0))
-
-      methods.push('parent')
-      assert.equal(null, document.parent())
-
-      methods.push('prev')
-      assert.equal(null, document.prev())
-
-      methods.push('toString')
-      assert(document.toString().indexOf(rootNode.toString()) >= 0)
-
-      assert.deepEqual(methods, Object.keys(rootNode.constructor.prototype).sort())
-
-    it "has all the same properties", ->
-      properties = []
-
-      properties.push('children')
-      assert.equal(1, document.children.length)
-      assert.deepEqual(rootNode, document.children[0])
-
-      properties.push('name')
-      assert.equal("DOCUMENT", document.name)
-
-      properties.push('position')
-      assert.equal(0, document.position)
-
-      properties.push('size')
-      assert.equal(rootNode.size, document.size)
-
-      assert.deepEqual(properties.sort(), Object.keys(rootNode).sort())

@@ -4,18 +4,19 @@ compiler = require ".."
 { Document } = require "tree-sitter"
 
 describe "ASTNode", ->
-  [document, language] = []
+  [document, language, rootNode, sumNode] = []
 
   before ->
     language = compiler.compileAndLoad(compiler.grammar
       name: "arithmetic"
 
       rules:
-        expression: -> choice(@sum, @difference, @product, @quotient, @number, @variable)
-        sum: -> prec.left(0, seq(@expression, "+", @expression))
-        difference: -> prec.left(0, seq(@expression, "-", @expression))
-        product: -> prec.left(1, seq(@expression, "*", @expression))
-        quotient: -> prec.left(1, seq(@expression, "/", @expression))
+        program: -> @_expression
+        _expression: -> choice(@sum, @difference, @product, @quotient, @number, @variable)
+        sum: -> prec.left(0, seq(@_expression, "+", @_expression))
+        difference: -> prec.left(0, seq(@_expression, "-", @_expression))
+        product: -> prec.left(1, seq(@_expression, "*", @_expression))
+        quotient: -> prec.left(1, seq(@_expression, "/", @_expression))
         number: -> /\d+/
         variable: -> /\a\w+/
     )
@@ -25,54 +26,60 @@ describe "ASTNode", ->
     document
       .setLanguage(language)
       .setInputString("x10 + 1000")
+    sumNode = document.rootNode.children[0]
+    assert.equal("sum", sumNode.name)
 
   describe "::children", ->
     it "returns an array of child nodes", ->
-      assert.equal(1, document.children.length)
+      assert.equal(1, document.rootNode.children.length)
+      assert.deepEqual(
+        ['variable', '+', 'number'],
+        sumNode.children.map (child) -> child.name
+      )
 
-      sum = document.children[0]
-      assert.equal("sum", sum.name)
-      assert.equal(2, sum.children.length)
-
-      variable = sum.children[0]
-      assert.equal("variable", variable.name)
-
-      number = sum.children[1]
-      assert.equal("number", number.name)
+  describe "::namedChildren", ->
+    it "returns an array of named child nodes", ->
+      assert.equal(1, document.rootNode.namedChildren.length)
+      assert.deepEqual(
+        ['variable', 'number'],
+        sumNode.namedChildren.map (child) -> child.name
+      )
 
   describe "::size", ->
     it "returns the number of bytes spanned by the node", ->
-      sum = document.children[0]
-      assert.equal(10, sum.size)
-      assert.equal(3, sum.children[0].size)
-      assert.equal(4, sum.children[1].size)
+      assert.equal(10, sumNode.size)
+      assert.equal(3, sumNode.namedChildren[0].size)
+      assert.equal(4, sumNode.namedChildren[1].size)
 
   describe "::position", ->
     it "returns the number of bytes spanned by the node", ->
-      sum = document.children[0]
-      assert.equal(0, sum.position)
-      assert.equal(0, sum.children[0].position)
-      assert.equal(6, sum.children[1].position)
+      assert.equal(0, sumNode.position)
+      assert.deepEqual([0, 4, 6], sumNode.children.map (child) -> child.position)
 
-  describe "::parent()", ->
+  describe "::parent", ->
     it "returns the node's parent", ->
-      sum = document.children[0]
-      variable = sum.children[0]
-      assert.deepEqual(sum, variable.parent())
+      variableNode = sumNode.children[0]
+      assert.deepEqual(sumNode, variableNode.parent)
+      assert.deepEqual(document.rootNode, sumNode.parent)
 
-  describe "::next()", ->
-    it "returns the node's next sibling", ->
-      sum = document.children[0]
-      assert.deepEqual(sum.children[1], sum.children[0].next())
+  describe "::nextSibling and ::previousSibling", ->
+    it "returns the node's next and previous sibling", ->
+      assert.deepEqual(sumNode.children[1], sumNode.children[0].nextSibling)
+      assert.deepEqual(sumNode.children[2], sumNode.children[1].nextSibling)
+      assert.deepEqual(sumNode.children[0], sumNode.children[1].previousSibling)
+      assert.deepEqual(sumNode.children[1], sumNode.children[2].previousSibling)
 
-  describe "::prev()", ->
-    it "returns the node's previous sibling", ->
-      sum = document.children[0]
-      assert.deepEqual(sum.children[0], sum.children[1].prev())
+  describe "::nextNamedSibling and ::previousNamedSibling", ->
+    it "returns the node's next and previous named sibling", ->
+      assert.deepEqual(sumNode.namedChildren[1], sumNode.namedChildren[0].nextNamedSibling)
+      assert.deepEqual(sumNode.namedChildren[0], sumNode.namedChildren[1].previousNamedSibling)
 
-  describe "::node_at(position)", ->
-    describe "when there is a leaf node that spans the given range", ->
-      it "returns the leaf node", ->
-        sum = document.children[0]
-        variable = sum.nodeAt(1)
-        assert.equal('(variable)', variable.toString())
+  describe "::descendantForRange(min, max)", ->
+    it "returns the smallest node that spans the given range", ->
+      assert.equal('variable', sumNode.descendantForRange(1, 2).name)
+      assert.equal('+', sumNode.descendantForRange(4, 4).name)
+
+  describe "::namedDescendantForRange(min, max)", ->
+    it "returns the smalleset named node that spans the given range", ->
+      assert.equal('variable', sumNode.namedDescendantForRange(1, 2).name)
+      assert.equal('sum', sumNode.namedDescendantForRange(4, 4).name)

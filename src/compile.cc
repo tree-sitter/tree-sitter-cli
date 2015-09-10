@@ -1,19 +1,16 @@
 #include "./compile.h"
 #include "tree_sitter/compiler.h"
 #include <utility>
-#include <set>
+#include <vector>
 
 namespace node_tree_sitter_compiler {
 
 using namespace v8;
-using namespace tree_sitter::rules;
-using tree_sitter::Grammar;
-using tree_sitter::GrammarError;
+using namespace tree_sitter;
 using std::string;
 using std::get;
 using std::pair;
 using std::vector;
-using std::set;
 
 static std::string StringFromJsString(Handle<String> js_string) {
   String::Utf8Value utf8_string(js_string);
@@ -149,10 +146,10 @@ pair<Grammar, bool> GrammarFromJsGrammar(Handle<Object> js_grammar) {
       return { Grammar({}), false };
     }
 
-    set<rule_ptr> ubiquitous_tokens;
+    vector<rule_ptr> ubiquitous_tokens;
     const uint32_t length = js_ubiquitous_tokens->Length();
     for (uint32_t i = 0; i < length; i++)
-      ubiquitous_tokens.insert(RuleFromJsRule(ArrayGet<Object>(js_ubiquitous_tokens, i)));
+      ubiquitous_tokens.push_back(RuleFromJsRule(ArrayGet<Object>(js_ubiquitous_tokens, i)));
 
     result.ubiquitous_tokens(ubiquitous_tokens);
   }

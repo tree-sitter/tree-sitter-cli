@@ -20,9 +20,9 @@ describe "Writing a grammar", ->
         document.setLanguage(compiler.compileAndLoad(grammar))
 
         document.setInputString("")
-        assert.equal(document.toString(), "(DOCUMENT (the_rule))")
+        assert.equal(document.rootNode.toString(), "(the_rule)")
         document.setInputString("not-blank")
-        assert.equal(document.toString(), "(DOCUMENT (ERROR (UNEXPECTED 'n')))")
+        assert.equal(document.rootNode.toString(), "(ERROR (UNEXPECTED 'n'))")
 
     describe "string", ->
       it "matches one particular string", ->
@@ -34,9 +34,9 @@ describe "Writing a grammar", ->
         document.setLanguage(compiler.compileAndLoad(grammar))
 
         document.setInputString("the-string")
-        assert.equal(document.toString(), "(DOCUMENT (the_rule))")
+        assert.equal(document.rootNode.toString(), "(the_rule)")
         document.setInputString("another-string")
-        assert.equal(document.toString(), "(DOCUMENT (ERROR (UNEXPECTED 'a')))")
+        assert.equal(document.rootNode.toString(), "(ERROR (UNEXPECTED 'a'))")
 
     describe "regex", ->
       it "matches according to a regular expression", ->
@@ -48,9 +48,9 @@ describe "Writing a grammar", ->
         document.setLanguage(compiler.compileAndLoad(grammar))
 
         document.setInputString("abcba")
-        assert.equal(document.toString(), "(DOCUMENT (the_rule))")
+        assert.equal(document.rootNode.toString(), "(the_rule)")
         document.setInputString("def")
-        assert.equal(document.toString(), "(DOCUMENT (ERROR (UNEXPECTED 'd')))")
+        assert.equal(document.rootNode.toString(), "(ERROR (UNEXPECTED 'd'))")
 
     describe "repeat", ->
       it "applies the given rule any number of times", ->
@@ -62,11 +62,11 @@ describe "Writing a grammar", ->
         document.setLanguage(compiler.compileAndLoad(grammar))
 
         document.setInputString("")
-        assert.equal(document.toString(), "(DOCUMENT (the_rule))")
+        assert.equal(document.rootNode.toString(), "(the_rule)")
         document.setInputString("o")
-        assert.equal(document.toString(), "(DOCUMENT (the_rule))")
+        assert.equal(document.rootNode.toString(), "(the_rule)")
         document.setInputString("ooo")
-        assert.equal(document.toString(), "(DOCUMENT (the_rule))")
+        assert.equal(document.rootNode.toString(), "(the_rule)")
 
     describe "sequence", ->
       it "applies a list of other rules in sequence", ->
@@ -78,11 +78,11 @@ describe "Writing a grammar", ->
         document.setLanguage(compiler.compileAndLoad(grammar))
 
         document.setInputString("123")
-        assert.equal(document.toString(), "(DOCUMENT (the_rule))")
+        assert.equal(document.rootNode.toString(), "(the_rule)")
         document.setInputString("12")
-        assert.equal(document.toString(), "(DOCUMENT (ERROR (UNEXPECTED <EOF>)))")
+        assert.equal(document.rootNode.toString(), "(ERROR (UNEXPECTED <EOF>))")
         document.setInputString("1234")
-        assert.equal(document.toString(), "(DOCUMENT (ERROR (UNEXPECTED '4')))")
+        assert.equal(document.rootNode.toString(), "(ERROR (UNEXPECTED '4'))")
 
     describe "choice", ->
       it "applies any of a list of rules", ->
@@ -94,9 +94,9 @@ describe "Writing a grammar", ->
         document.setLanguage(compiler.compileAndLoad(grammar))
 
         document.setInputString("1")
-        assert.equal(document.toString(), "(DOCUMENT (the_rule))")
+        assert.equal(document.rootNode.toString(), "(the_rule)")
         document.setInputString("4")
-        assert.equal(document.toString(), "(DOCUMENT (ERROR (UNEXPECTED '4')))")
+        assert.equal(document.rootNode.toString(), "(ERROR (UNEXPECTED '4'))")
 
     describe "symbol", ->
       it "applies another rule in the grammar by name", ->
@@ -110,36 +110,36 @@ describe "Writing a grammar", ->
         document.setLanguage(compiler.compileAndLoad(grammar))
 
         document.setInputString("one-two")
-        assert.equal(document.toString(), "(DOCUMENT (the_rule (second_rule) (third_rule)))")
+        assert.equal(document.rootNode.toString(), "(the_rule (second_rule) (third_rule))")
 
     describe "prec", ->
       it "alters the precedence and associativity of the given rule", ->
         grammar = compiler.grammar
           name: "test_grammar"
           rules:
-            expression: -> choice(@sum, @product, @equation, @variable)
-            product: -> prec(2, seq(@expression, "*", @expression))
-            sum: -> prec.left(1, seq(@expression, "+", @expression))
-            equation: -> prec.right(0, seq(@expression, "=", @expression))
+            _expression: -> choice(@sum, @product, @equation, @variable)
+            product: -> prec(2, seq(@_expression, "*", @_expression))
+            sum: -> prec.left(1, seq(@_expression, "+", @_expression))
+            equation: -> prec.right(0, seq(@_expression, "=", @_expression))
             variable: -> /\a+/
 
         document.setLanguage(compiler.compileAndLoad(grammar))
 
         # product has higher precedence than sum
         document.setInputString("a + b * c")
-        assert.equal(document.toString(), "(DOCUMENT (sum (variable) (product (variable) (variable))))")
+        assert.equal(document.rootNode.toString(), "(sum (variable) (product (variable) (variable)))")
         document.setInputString("a * b + c")
-        assert.equal(document.toString(), "(DOCUMENT (sum (product (variable) (variable)) (variable)))")
+        assert.equal(document.rootNode.toString(), "(sum (product (variable) (variable)) (variable))")
 
         # product and sum are left-associative
         document.setInputString("a * b * c")
-        assert.equal(document.toString(), "(DOCUMENT (product (product (variable) (variable)) (variable)))")
+        assert.equal(document.rootNode.toString(), "(product (product (variable) (variable)) (variable))")
         document.setInputString("a + b + c")
-        assert.equal(document.toString(), "(DOCUMENT (sum (sum (variable) (variable)) (variable)))")
+        assert.equal(document.rootNode.toString(), "(sum (sum (variable) (variable)) (variable))")
 
         # equation is right-associative
         document.setInputString("a = b = c")
-        assert.equal(document.toString(), "(DOCUMENT (equation (variable) (equation (variable) (variable))))")
+        assert.equal(document.rootNode.toString(), "(equation (variable) (equation (variable) (variable)))")
 
     describe "err", ->
       it "confines errors to the given subtree", ->
@@ -156,12 +156,12 @@ describe "Writing a grammar", ->
 
         document.setInputString("string1 SOMETHING_ELSE string3 string4")
         assert.equal(
-          document.toString(),
-          "(DOCUMENT (the_rule (rule1) (ERROR (UNEXPECTED 'S')) (rule3) (rule4)))")
+          document.rootNode.toString(),
+          "(the_rule (rule1) (ERROR (UNEXPECTED 'S')) (rule3) (rule4))")
         document.setInputString("string1 string2 SOMETHING_ELSE string4")
         assert.equal(
-          document.toString(),
-          "(DOCUMENT (rule1) (rule2) (ERROR (UNEXPECTED 'S') (rule4)))")
+          document.rootNode.toString(),
+          "(ERROR (rule1) (rule2) (UNEXPECTED 'S') (rule4))")
 
   describe "ubiquitous tokens", ->
     it "allows the given tokens to appear anywhere in the input", ->
@@ -177,8 +177,8 @@ describe "Writing a grammar", ->
 
       document.setInputString("one two ... three ... four")
       assert.equal(
-        document.toString(),
-        "(DOCUMENT (the_rule (word) (word) (ellipsis) (word) (ellipsis) (word)))")
+        document.rootNode.toString(),
+        "(the_rule (word) (word) (ellipsis) (word) (ellipsis) (word))")
 
     it "allows anonymous rules to be provided", ->
       grammar = compiler.grammar
@@ -191,9 +191,9 @@ describe "Writing a grammar", ->
       document.setLanguage(compiler.compileAndLoad(grammar))
 
       document.setInputString("hello...hello---hello")
-      assert.equal(document.toString(), "(DOCUMENT (the_rule (word) (word) (word)))")
+      assert.equal(document.rootNode.toString(), "(the_rule (word) (word) (word))")
       document.setInputString("hello hello")
-      assert.equal(document.toString(), "(DOCUMENT (word) (ERROR (UNEXPECTED ' ') (word)))")
+      assert.equal(document.rootNode.toString(), "(ERROR (word) (UNEXPECTED ' ') (word))")
 
     it "defaults to whitespace characters", ->
       grammar = compiler.grammar
@@ -205,9 +205,9 @@ describe "Writing a grammar", ->
       document.setLanguage(compiler.compileAndLoad(grammar))
 
       document.setInputString("hello hello\thello\nhello\rhello")
-      assert.equal(document.toString(), "(DOCUMENT (the_rule (word) (word) (word) (word) (word)))")
+      assert.equal(document.rootNode.toString(), "(the_rule (word) (word) (word) (word) (word))")
       document.setInputString("hello.hello")
-      assert.equal(document.toString(), "(DOCUMENT (word) (ERROR (UNEXPECTED '.') (word)))")
+      assert.equal(document.rootNode.toString(), "(ERROR (word) (UNEXPECTED '.') (word))")
 
   describe "error handling", ->
     describe "when the grammar has conflicts", ->
