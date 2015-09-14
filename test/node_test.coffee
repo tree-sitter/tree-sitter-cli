@@ -27,14 +27,14 @@ describe "ASTNode", ->
       .setLanguage(language)
       .setInputString("x10 + 1000")
     sumNode = document.rootNode.children[0]
-    assert.equal("sum", sumNode.name)
+    assert.equal("sum", sumNode.type)
 
   describe "::children", ->
     it "returns an array of child nodes", ->
       assert.equal(1, document.rootNode.children.length)
       assert.deepEqual(
         ['variable', '+', 'number'],
-        sumNode.children.map (child) -> child.name
+        sumNode.children.map (child) -> child.type
       )
 
   describe "::namedChildren", ->
@@ -42,7 +42,7 @@ describe "ASTNode", ->
       assert.equal(1, document.rootNode.namedChildren.length)
       assert.deepEqual(
         ['variable', 'number'],
-        sumNode.namedChildren.map (child) -> child.name
+        sumNode.namedChildren.map (child) -> child.type
       )
 
   describe "::size", ->
@@ -76,10 +76,10 @@ describe "ASTNode", ->
 
   describe "::descendantForRange(min, max)", ->
     it "returns the smallest node that spans the given range", ->
-      assert.equal('variable', sumNode.descendantForRange(1, 2).name)
-      assert.equal('+', sumNode.descendantForRange(4, 4).name)
+      assert.equal('variable', sumNode.descendantForRange(1, 2).type)
+      assert.equal('+', sumNode.descendantForRange(4, 4).type)
 
   describe "::namedDescendantForRange(min, max)", ->
     it "returns the smalleset named node that spans the given range", ->
-      assert.equal('variable', sumNode.namedDescendantForRange(1, 2).name)
-      assert.equal('sum', sumNode.namedDescendantForRange(4, 4).name)
+      assert.equal('variable', sumNode.namedDescendantForRange(1, 2).type)
+      assert.equal('sum', sumNode.namedDescendantForRange(4, 4).type)
