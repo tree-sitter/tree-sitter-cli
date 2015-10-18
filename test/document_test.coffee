@@ -56,7 +56,7 @@ describe "Document", ->
             0
 
           _readIndex: 0,
-        })
+        }).parse()
 
         assert.equal("(sentence (word1) (word2))", document.rootNode.toString())
 
@@ -78,7 +78,7 @@ describe "Document", ->
             _readIndex: 0,
           }
 
-          document.setInput(input)
+          document.setInput(input).parse()
 
           assert.equal("(sentence (word1))", document.rootNode.toString())
           assert.equal(4, input._readIndex)
@@ -126,7 +126,7 @@ describe "Document", ->
       }
 
       document.setLanguage(language)
-      document.setInput(input)
+      document.setInput(input).parse()
 
       assert.equal(
         "(sentence (word1) (word2) (word1))",
@@ -135,10 +135,11 @@ describe "Document", ->
     describe "when text is inserted", ->
       it "updates the parse tree", ->
         input.text = "first-word first-word second-word first-word"
+
         document.edit(
           position: "first-word ".length
           charsInserted: "first-word ".length
-        )
+        ).parse()
 
         assert.equal(
           document.rootNode.toString(),
@@ -150,7 +151,7 @@ describe "Document", ->
         document.edit(
           position: "first-word ".length
           charsRemoved: "second-word ".length
-        )
+        ).parse()
 
         assert.equal(
           document.rootNode.toString(),
@@ -160,7 +161,7 @@ describe "Document", ->
       beforeEach ->
         input.text = "αβ αβ αβ"
 
-        document.setInput(input)
+        document.invalidate().parse()
         assert.equal(
           document.rootNode.toString(),
           "(sentence (word3) (word3) (word3))")
@@ -170,7 +171,7 @@ describe "Document", ->
         document.edit(
           position: 2
           charsInserted: 1
-        )
+        ).parse()
 
         assert.equal(
           document.rootNode.toString(),
@@ -182,7 +183,7 @@ describe "Document", ->
       oldRootNode = document.rootNode
       assert.equal(oldRootNode.isValid(), true)
 
-      document.edit(position: 0, charsRemoved: 1)
+      document.edit(position: 0, charsRemoved: 1).parse()
       assert.equal(oldRootNode.isValid(), false)
       assert.equal(oldRootNode.name, null)
       assert.equal(oldRootNode.position, null)
@@ -198,7 +199,7 @@ describe "Document", ->
         debugMessages.push(msg)
 
     it "calls the given callback for each parse event", ->
-      document.setInputString("first-word second-word")
+      document.setInputString("first-word second-word").parse()
       assert.includeMembers(debugMessages, ['reduce', 'accept', 'shift'])
 
     describe "when given a falsy value", ->
@@ -233,7 +234,8 @@ describe "Document", ->
         console.error = originalConsoleError
 
       it "logs the error to the console", ->
-        document.setInputString("first-word")
+        document.setInputString("first-word").parse()
+
         assert.deepEqual(errorMessages[0], [
           "Error in debug callback:",
           thrownError

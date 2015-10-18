@@ -27,7 +27,7 @@
     "mkdirp": "*",
     "nan": "1.7.x",
     "temp": "0.7.x",
-    "tree-sitter": ">= 0.0.25",
+    "tree-sitter": ">= 0.0.26",
     "vows": "0.7.x",
     "yargs": "1.3.x"
   },

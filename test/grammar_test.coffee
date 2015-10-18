@@ -19,9 +19,10 @@ describe "Writing a grammar", ->
 
         document.setLanguage(compiler.compileAndLoad(grammar))
 
-        document.setInputString("")
+        document.setInputString("").parse()
         assert.equal(document.rootNode.toString(), "(the_rule)")
-        document.setInputString("not-blank")
+
+        document.setInputString("not-blank").parse()
         assert.equal(document.rootNode.toString(), "(ERROR (UNEXPECTED 'n'))")
 
     describe "string", ->
@@ -33,9 +34,10 @@ describe "Writing a grammar", ->
 
         document.setLanguage(compiler.compileAndLoad(grammar))
 
-        document.setInputString("the-string")
+        document.setInputString("the-string").parse()
         assert.equal(document.rootNode.toString(), "(the_rule)")
-        document.setInputString("another-string")
+
+        document.setInputString("another-string").parse()
         assert.equal(document.rootNode.toString(), "(ERROR (UNEXPECTED 'a'))")
 
     describe "regex", ->
@@ -47,9 +49,10 @@ describe "Writing a grammar", ->
 
         document.setLanguage(compiler.compileAndLoad(grammar))
 
-        document.setInputString("abcba")
+        document.setInputString("abcba").parse()
         assert.equal(document.rootNode.toString(), "(the_rule)")
-        document.setInputString("def")
+
+        document.setInputString("def").parse()
         assert.equal(document.rootNode.toString(), "(ERROR (UNEXPECTED 'd'))")
 
     describe "repeat", ->
@@ -61,11 +64,13 @@ describe "Writing a grammar", ->
 
         document.setLanguage(compiler.compileAndLoad(grammar))
 
-        document.setInputString("")
+        document.setInputString("").parse()
         assert.equal(document.rootNode.toString(), "(the_rule)")
-        document.setInputString("o")
+
+        document.setInputString("o").parse()
         assert.equal(document.rootNode.toString(), "(the_rule)")
-        document.setInputString("ooo")
+
+        document.setInputString("ooo").parse()
         assert.equal(document.rootNode.toString(), "(the_rule)")
 
     describe "sequence", ->
@@ -77,11 +82,13 @@ describe "Writing a grammar", ->
 
         document.setLanguage(compiler.compileAndLoad(grammar))
 
-        document.setInputString("123")
+        document.setInputString("123").parse()
         assert.equal(document.rootNode.toString(), "(the_rule)")
-        document.setInputString("12")
+
+        document.setInputString("12").parse()
         assert.equal(document.rootNode.toString(), "(ERROR (UNEXPECTED <EOF>))")
-        document.setInputString("1234")
+
+        document.setInputString("1234").parse()
         assert.equal(document.rootNode.toString(), "(ERROR (UNEXPECTED '4'))")
 
     describe "choice", ->
@@ -93,9 +100,10 @@ describe "Writing a grammar", ->
 
         document.setLanguage(compiler.compileAndLoad(grammar))
 
-        document.setInputString("1")
+        document.setInputString("1").parse()
         assert.equal(document.rootNode.toString(), "(the_rule)")
-        document.setInputString("4")
+
+        document.setInputString("4").parse()
         assert.equal(document.rootNode.toString(), "(ERROR (UNEXPECTED '4'))")
 
     describe "symbol", ->
@@ -109,7 +117,7 @@ describe "Writing a grammar", ->
 
         document.setLanguage(compiler.compileAndLoad(grammar))
 
-        document.setInputString("one-two")
+        document.setInputString("one-two").parse()
         assert.equal(document.rootNode.toString(), "(the_rule (second_rule) (third_rule))")
 
     describe "prec", ->
@@ -118,7 +126,7 @@ describe "Writing a grammar", ->
           name: "test_grammar"
           rules:
             _expression: -> choice(@sum, @product, @equation, @variable)
-            product: -> prec(2, seq(@_expression, "*", @_expression))
+            product: -> prec.left(2, seq(@_expression, "*", @_expression))
             sum: -> prec.left(1, seq(@_expression, "+", @_expression))
             equation: -> prec.right(0, seq(@_expression, "=", @_expression))
             variable: -> /\a+/
@@ -126,19 +134,19 @@ describe "Writing a grammar", ->
         document.setLanguage(compiler.compileAndLoad(grammar))
 
         # product has higher precedence than sum
-        document.setInputString("a + b * c")
+        document.setInputString("a + b * c").parse()
         assert.equal(document.rootNode.toString(), "(sum (variable) (product (variable) (variable)))")
-        document.setInputString("a * b + c")
+        document.setInputString("a * b + c").parse()
         assert.equal(document.rootNode.toString(), "(sum (product (variable) (variable)) (variable))")
 
         # product and sum are left-associative
-        document.setInputString("a * b * c")
+        document.setInputString("a * b * c").parse()
         assert.equal(document.rootNode.toString(), "(product (product (variable) (variable)) (variable))")
-        document.setInputString("a + b + c")
+        document.setInputString("a + b + c").parse()
         assert.equal(document.rootNode.toString(), "(sum (sum (variable) (variable)) (variable))")
 
         # equation is right-associative
-        document.setInputString("a = b = c")
+        document.setInputString("a = b = c").parse()
         assert.equal(document.rootNode.toString(), "(equation (variable) (equation (variable) (variable)))")
 
     describe "err", ->
@@ -154,11 +162,11 @@ describe "Writing a grammar", ->
 
         document.setLanguage(compiler.compileAndLoad(grammar))
 
-        document.setInputString("string1 SOMETHING_ELSE string3 string4")
+        document.setInputString("string1 SOMETHING_ELSE string3 string4").parse()
         assert.equal(
           document.rootNode.toString(),
           "(the_rule (rule1) (ERROR (UNEXPECTED 'S')) (rule3) (rule4))")
-        document.setInputString("string1 string2 SOMETHING_ELSE string4")
+        document.setInputString("string1 string2 SOMETHING_ELSE string4").parse()
         assert.equal(
           document.rootNode.toString(),
           "(ERROR (rule1) (rule2) (UNEXPECTED 'S') (rule4))")
@@ -175,7 +183,7 @@ describe "Writing a grammar", ->
 
       document.setLanguage(compiler.compileAndLoad(grammar))
 
-      document.setInputString("one two ... three ... four")
+      document.setInputString("one two ... three ... four").parse()
       assert.equal(
         document.rootNode.toString(),
         "(the_rule (word) (word) (ellipsis) (word) (ellipsis) (word))")
@@ -190,9 +198,10 @@ describe "Writing a grammar", ->
 
       document.setLanguage(compiler.compileAndLoad(grammar))
 
-      document.setInputString("hello...hello---hello")
+      document.setInputString("hello...hello---hello").parse()
       assert.equal(document.rootNode.toString(), "(the_rule (word) (word) (word))")
-      document.setInputString("hello hello")
+
+      document.setInputString("hello hello").parse()
       assert.equal(document.rootNode.toString(), "(ERROR (word) (UNEXPECTED ' ') (word))")
 
     it "defaults to whitespace characters", ->
@@ -204,9 +213,10 @@ describe "Writing a grammar", ->
 
       document.setLanguage(compiler.compileAndLoad(grammar))
 
-      document.setInputString("hello hello\thello\nhello\rhello")
+      document.setInputString("hello hello\thello\nhello\rhello").parse()
       assert.equal(document.rootNode.toString(), "(the_rule (word) (word) (word) (word) (word))")
-      document.setInputString("hello.hello")
+
+      document.setInputString("hello.hello").parse()
       assert.equal(document.rootNode.toString(), "(ERROR (word) (UNEXPECTED '.') (word))")
 
   describe "error handling", ->
@@ -220,7 +230,10 @@ describe "Writing a grammar", ->
               first_rule: -> seq("things", "stuff")
               second_rule: -> seq("things", "stuff")
         catch e
-          assert.match(e.message, /END_OF_INPUT(.|[\n])*Reduce(.|[\n])*Reduce/)
+          assert.match(e.message, /Unresolved conflict/)
+          assert.match(e.message, /Lookahead symbol: END_OF_INPUT/)
+          assert.match(e.message, /first_rule -> 'things' 'stuff'/)
+          assert.match(e.message, /second_rule -> 'things' 'stuff'/)
           assert.property(e, "isGrammarError")
           threw = true
         assert.ok(threw, "Expected an exception!")

@@ -67,6 +67,9 @@ rule_ptr RuleFromJsRule(Handle<Object> js_rule) {
   if (type == "REPEAT")
     return repeat(RuleFromJsRule(ObjectGet<Object>(js_rule, "value")));
 
+  if (type == "REPEAT1")
+    return repeat1(RuleFromJsRule(ObjectGet<Object>(js_rule, "value")));
+
   if (type == "SEQ") {
     Handle<Array> js_members = ObjectGet<Array>(js_rule, "members");
     vector<rule_ptr> members;
@@ -85,10 +88,18 @@ rule_ptr RuleFromJsRule(Handle<Object> js_rule) {
   if (type == "STRING")
     return str(StringFromJsString(ObjectGet<String>(js_rule, "value")));
 
+  if (type == "PREC") {
+    rule_ptr rule = RuleFromJsRule(ObjectGet<Object>(js_rule, "rule"));
+    if (rule.get())
+      return prec(ObjectGet<Integer>(js_rule, "value")->IntegerValue(), rule);
+    else
+      return rule_ptr();
+  }
+
   if (type == "PREC_LEFT") {
     rule_ptr rule = RuleFromJsRule(ObjectGet<Object>(js_rule, "rule"));
     if (rule.get())
-      return prec(ObjectGet<Integer>(js_rule, "value")->IntegerValue(), rule, AssociativityLeft);
+      return prec_left(ObjectGet<Integer>(js_rule, "value")->IntegerValue(), rule);
     else
       return rule_ptr();
   }
@@ -96,7 +107,7 @@ rule_ptr RuleFromJsRule(Handle<Object> js_rule) {
   if (type == "PREC_RIGHT") {
     rule_ptr rule = RuleFromJsRule(ObjectGet<Object>(js_rule, "rule"));
     if (rule.get())
-      return prec(ObjectGet<Integer>(js_rule, "value")->IntegerValue(), rule, AssociativityRight);
+      return prec_right(ObjectGet<Integer>(js_rule, "value")->IntegerValue(), rule);
     else
       return rule_ptr();
   }

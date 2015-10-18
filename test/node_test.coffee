@@ -26,6 +26,7 @@ describe "ASTNode", ->
     document
       .setLanguage(language)
       .setInputString("x10 + 1000")
+      .parse()
     sumNode = document.rootNode.children[0]
     assert.equal("sum", sumNode.type)
 
