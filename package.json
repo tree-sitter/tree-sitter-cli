@@ -18,7 +18,7 @@
   "bin": {
     "tree-sitter": "cli.js"
   },
-  "version": "0.0.21",
+  "version": "0.0.22",
   "dependencies": {
     "bindings": "1.2.x",
     "coffee-script": "1.7.x",
