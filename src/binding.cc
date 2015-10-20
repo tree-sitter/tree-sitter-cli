@@ -12,11 +12,11 @@ using namespace v8;
 void InitAll(Handle<Object> exports) {
   node_tree_sitter_compiler::InitLanguage(exports);
   exports->Set(
-      NanNew("compile"),
-      NanNew<FunctionTemplate>(Compile)->GetFunction());
+      Nan::New("compile").ToLocalChecked(),
+      Nan::New<FunctionTemplate>(Compile)->GetFunction());
   exports->Set(
-      NanNew("loadLanguage"),
-      NanNew<FunctionTemplate>(LoadLanguage)->GetFunction());
+      Nan::New("loadLanguage").ToLocalChecked(),
+      Nan::New<FunctionTemplate>(LoadLanguage)->GetFunction());
   rule_builder::Init(exports);
 }
 

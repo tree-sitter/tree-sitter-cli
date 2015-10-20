@@ -19,7 +19,7 @@ static std::string StringFromJsString(Handle<String> js_string) {
 
 template<typename T>
 Handle<T> ObjectGet(Handle<Object> object, const char *key) {
-  return Handle<T>::Cast(object->Get(NanNew(key)));
+  return Handle<T>::Cast(object->Get(Nan::New(key).ToLocalChecked()));
 }
 
 template<typename T>
@@ -29,13 +29,13 @@ Handle<T> ArrayGet(Handle<Array> array, uint32_t i) {
 
 rule_ptr RuleFromJsRule(Handle<Object> js_rule) {
   if (!js_rule->IsObject()) {
-    NanThrowTypeError("Expected rule to be an object");
+    Nan::ThrowTypeError("Expected rule to be an object");
     return rule_ptr();
   }
 
   Handle<String> js_type = ObjectGet<String>(js_rule, "type");
   if (!js_type->IsString()) {
-    NanThrowTypeError("Expected rule type to be a string");
+    Nan::ThrowTypeError("Expected rule type to be a string");
     return rule_ptr();
   }
 
@@ -123,14 +123,14 @@ rule_ptr RuleFromJsRule(Handle<Object> js_rule) {
   if (type == "SYMBOL")
     return sym(StringFromJsString(ObjectGet<String>(js_rule, "name")));
 
-  NanThrowError((string("Unexpected rule type: ") + type).c_str());
+  Nan::ThrowError((string("Unexpected rule type: ") + type).c_str());
   return rule_ptr();
 }
 
 pair<Grammar, bool> GrammarFromJsGrammar(Handle<Object> js_grammar) {
   Handle<Object> js_rules = ObjectGet<Object>(js_grammar, "rules");
   if (!js_rules->IsObject()) {
-    NanThrowTypeError("Expected rules to be an object");
+    Nan::ThrowTypeError("Expected rules to be an object");
     return { Grammar({}), false };
   }
 
@@ -153,7 +153,7 @@ pair<Grammar, bool> GrammarFromJsGrammar(Handle<Object> js_grammar) {
   Handle<Array> js_ubiquitous_tokens = ObjectGet<Array>(js_grammar, "ubiquitous");
   if (!js_ubiquitous_tokens->IsUndefined()) {
     if (!js_ubiquitous_tokens->IsArray()) {
-      NanThrowTypeError("Expected ubiquitous_tokens to be an array");
+      Nan::ThrowTypeError("Expected ubiquitous_tokens to be an array");
       return { Grammar({}), false };
     }
 
@@ -169,30 +169,34 @@ pair<Grammar, bool> GrammarFromJsGrammar(Handle<Object> js_grammar) {
 }
 
 NAN_METHOD(Compile) {
-  NanScope();
-
-  Handle<Object> js_grammar = Handle<Object>::Cast(args[0]);
-  if (!js_grammar->IsObject())
-    NanThrowTypeError("Expected grammar to be an object");
+  Handle<Object> js_grammar = Handle<Object>::Cast(info[0]);
+  if (!js_grammar->IsObject()) {
+    Nan::ThrowTypeError("Expected grammar to be an object");
+    return;
+  }
 
   Handle<String> js_name = ObjectGet<String>(js_grammar, "name");
-  if (!js_name->IsString())
-    NanThrowTypeError("Expected grammar name to be a string");
+  if (!js_name->IsString()) {
+    Nan::ThrowTypeError("Expected grammar name to be a string");
+    return;
+  }
 
   string name = StringFromJsString(js_name);
 
   pair<Grammar, bool> grammarResult = GrammarFromJsGrammar(js_grammar);
-  if (!grammarResult.second)
-    NanReturnUndefined();
+  if (!grammarResult.second) {
+    return;
+  }
 
   pair<string, const GrammarError *> result = tree_sitter::compile(grammarResult.first, name);
   if (result.second) {
-    Local<Value> error = NanError(result.second->message.c_str());
-    Local<Object>::Cast(error)->Set(NanNew("isGrammarError"), NanTrue());
-    NanThrowError(error);
+    Local<Value> error = Nan::Error(result.second->message.c_str());
+    Local<Object>::Cast(error)->Set(Nan::New("isGrammarError").ToLocalChecked(), Nan::True());
+    Nan::ThrowError(error);
+    return;
   }
 
-  NanReturnValue(NanNew(result.first));
+  info.GetReturnValue().Set(Nan::New(result.first).ToLocalChecked());
 }
 
 }  // namespace node_tree_sitter_compiler

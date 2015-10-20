@@ -8,51 +8,50 @@ namespace rule_builder {
 
 using namespace v8;
 
-v8::Persistent<v8::Function> constructor;
-v8::Persistent<v8::Function> symbol_fn;
+Nan::Persistent<v8::Function> constructor;
+Nan::Persistent<v8::Function> symbol_fn;
 
 static NAN_METHOD(New) {
-  NanScope();
-  NanReturnValue(args.This());
+  info.GetReturnValue().Set(info.This());
 }
 
 NAN_PROPERTY_GETTER(GetProperty) {
-  NanScope();
-  Local<Object> builder = args.This();
-  Local<Object> rules = Local<Object>::Cast(args.Data());
+  Local<Object> rules = Local<Object>::Cast(info.Data());
 
-  if (!rules->IsObject())
-    NanThrowError("This should not happend");
+  if (!rules->IsObject()) {
+    Nan::ThrowError("This should not happend");
+    return;
+  }
 
   if (!rules->HasRealNamedProperty(property)) {
-    NanUtf8String property_name(property);
-    NanReturnValue(NanTypeError((std::string("Undefined rule '") + *property_name + "'").c_str()));
+    Nan::Utf8String property_name(property);
+    info.GetReturnValue().Set(Nan::TypeError((std::string("Undefined rule '") + *property_name + "'").c_str()));
+    return;
   }
 
   Handle<Value> argv[1] = { property };
-  NanReturnValue(NanNew(symbol_fn)->Call(builder, 1, argv));
+  info.GetReturnValue().Set(Nan::New(symbol_fn)->Call(info.This(), 1, argv));
 }
 
 static NAN_METHOD(Build) {
-  NanScope();
+  if (info.Length() != 1 || !info[0]->IsObject()) {
+    Nan::ThrowTypeError("A rule hash must be supplied");
+    return;
+  }
 
-  if (args.Length() != 1 || !args[0]->IsObject())
-    NanThrowTypeError("A rule hash must be supplied");
-
-  Local<FunctionTemplate> tpl = NanNew<FunctionTemplate>(New);
-  tpl->SetClassName(NanNew<String>("RuleBuilder"));
-  tpl->InstanceTemplate()->SetNamedPropertyHandler(GetProperty, 0, 0, 0, 0, args[0]);
-  NanReturnValue(tpl->GetFunction()->NewInstance());
+  Local<FunctionTemplate> tpl = Nan::New<FunctionTemplate>(New);
+  tpl->SetClassName(Nan::New("RuleBuilder").ToLocalChecked());
+  Nan::SetNamedPropertyHandler(tpl->InstanceTemplate(), GetProperty, 0, 0, 0, 0, info[0]);
+  info.GetReturnValue().Set(tpl->GetFunction()->NewInstance());
 }
 
 static NAN_METHOD(Setup) {
-  NanScope();
-  NanAssignPersistent(symbol_fn, Handle<Function>::Cast(args[0]));
-  NanReturnValue(NanNew<FunctionTemplate>(Build)->GetFunction());
+  symbol_fn.Reset(Local<Function>::Cast(info[0]));
+  info.GetReturnValue().Set(Nan::New<FunctionTemplate>(Build)->GetFunction());
 }
 
 void Init(Handle<Object> exports) {
-  exports->Set(NanNew("setupRuleBuilder"), NanNew<FunctionTemplate>(Setup)->GetFunction());
+  exports->Set(Nan::New("setupRuleBuilder").ToLocalChecked(), Nan::New<FunctionTemplate>(Setup)->GetFunction());
 }
 
 }  // namespace rule_builder
