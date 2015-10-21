@@ -1,13 +1,14 @@
 assert = require "assert"
 compiler = require ".."
-{ seq, choice, prec } = compiler.rules
-{ Document } = require "tree-sitter"
+{compile, loadLanguage} = compiler
+{grammar, seq, choice, prec} = compiler.dsl
+{Document} = require "tree-sitter"
 
 describe "ASTNode", ->
   [document, language, rootNode, sumNode] = []
 
   before ->
-    language = compiler.compileAndLoad(compiler.grammar
+    language = loadLanguage(compile(grammar
       name: "arithmetic"
 
       rules:
@@ -19,7 +20,7 @@ describe "ASTNode", ->
         quotient: -> prec.left(1, seq(@_expression, "/", @_expression))
         number: -> /\d+/
         variable: -> /\a\w+/
-    )
+    ))
 
   beforeEach ->
     document = new Document()

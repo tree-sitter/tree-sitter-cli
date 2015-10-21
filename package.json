@@ -11,7 +11,7 @@
     "parser",
     "lexer"
   ],
-  "main": "index.js",
+  "main": "lib/api/index.js",
   "scripts": {
     "test": "mocha --compilers coffee:coffee-script/register"
   },

@@ -1,13 +1,14 @@
-{ assert } = require "chai"
+{assert} = require "chai"
 compiler = require ".."
-{ repeat, choice } = compiler.rules
-{ Document } = require "tree-sitter"
+{compile, loadLanguage} = compiler
+{grammar, repeat, choice} = compiler.dsl
+{Document} = require "tree-sitter"
 
 describe "Document", ->
   [document, language] = []
 
   before ->
-    language = compiler.compileAndLoad(compiler.grammar
+    language = loadLanguage(compile(grammar
       name: "test"
       rules:
         sentence: -> repeat(choice(@word1, @word2, @word3, @word4))
@@ -15,7 +16,7 @@ describe "Document", ->
         word2: -> "second-word"
         word3: -> "αβ"
         word4: -> "αβδ"
-    )
+    ))
 
   beforeEach ->
     document = new Document()

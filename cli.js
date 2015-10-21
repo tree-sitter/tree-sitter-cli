@@ -1,16 +1,17 @@
 #!/usr/bin/env node
 
-var cli = require("./lib/cli"),
+var compileCommand = require("./lib/cli/compile"),
+    testCommand = require("./lib/cli/test"),
     path = require("path"),
     argv = require("yargs").argv;
 
 switch (argv._[0]) {
   case "compile":
-    process.exit(cli.compile());
+    process.exit(compileCommand());
     break;
 
   case "test":
-    cli.test({
+    testCommand({
       focus: argv.f || argv.focus,
       debug: argv.d || argv.debug
     }, process.exit);

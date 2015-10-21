@@ -1,7 +1,8 @@
-{ assert } = require "chai"
+{assert} = require "chai"
 compiler = require ".."
-{ blank, choice, prec, err, repeat, seq, sym } = compiler.rules
-{ Document } = require "tree-sitter"
+{compile, loadLanguage} = compiler
+{blank, choice, prec, err, repeat, seq, sym, grammar} = compiler.dsl
+{Document} = require "tree-sitter"
 
 describe "Writing a grammar", ->
   document = null
@@ -12,12 +13,13 @@ describe "Writing a grammar", ->
   describe "rules", ->
     describe "blank", ->
       it "matches the empty string", ->
-        grammar = compiler.grammar
+        language = loadLanguage(compile(grammar
           name: "test_grammar"
           rules:
             the_rule: -> blank()
+        ))
 
-        document.setLanguage(compiler.compileAndLoad(grammar))
+        document.setLanguage(language)
 
         document.setInputString("").parse()
         assert.equal(document.rootNode.toString(), "(the_rule)")
@@ -27,12 +29,13 @@ describe "Writing a grammar", ->
 
     describe "string", ->
       it "matches one particular string", ->
-        grammar = compiler.grammar
+        language = loadLanguage(compile(grammar
           name: "test_grammar"
           rules:
             the_rule: -> "the-string"
+        ))
 
-        document.setLanguage(compiler.compileAndLoad(grammar))
+        document.setLanguage(language)
 
         document.setInputString("the-string").parse()
         assert.equal(document.rootNode.toString(), "(the_rule)")
@@ -42,12 +45,13 @@ describe "Writing a grammar", ->
 
     describe "regex", ->
       it "matches according to a regular expression", ->
-        grammar = compiler.grammar
+        language = loadLanguage(compile(grammar
           name: "test_grammar"
           rules:
             the_rule: -> /[a-c]+/
+        ))
 
-        document.setLanguage(compiler.compileAndLoad(grammar))
+        document.setLanguage(language)
 
         document.setInputString("abcba").parse()
         assert.equal(document.rootNode.toString(), "(the_rule)")
@@ -57,12 +61,13 @@ describe "Writing a grammar", ->
 
     describe "repeat", ->
       it "applies the given rule any number of times", ->
-        grammar = compiler.grammar
+        language = loadLanguage(compile(grammar
           name: "test_grammar"
           rules:
             the_rule: -> repeat("o")
+        ))
 
-        document.setLanguage(compiler.compileAndLoad(grammar))
+        document.setLanguage(language)
 
         document.setInputString("").parse()
         assert.equal(document.rootNode.toString(), "(the_rule)")
@@ -75,12 +80,13 @@ describe "Writing a grammar", ->
 
     describe "sequence", ->
       it "applies a list of other rules in sequence", ->
-        grammar = compiler.grammar
+        language = loadLanguage(compile(grammar
           name: "test_grammar"
           rules:
             the_rule: -> seq("1", "2", "3")
+        ))
 
-        document.setLanguage(compiler.compileAndLoad(grammar))
+        document.setLanguage(language)
 
         document.setInputString("123").parse()
         assert.equal(document.rootNode.toString(), "(the_rule)")
@@ -93,12 +99,13 @@ describe "Writing a grammar", ->
 
     describe "choice", ->
       it "applies any of a list of rules", ->
-        grammar = compiler.grammar
+        language = loadLanguage(compile(grammar
           name: "test_grammar"
           rules:
             the_rule: -> choice("1", "2", "3")
+        ))
 
-        document.setLanguage(compiler.compileAndLoad(grammar))
+        document.setLanguage(language)
 
         document.setInputString("1").parse()
         assert.equal(document.rootNode.toString(), "(the_rule)")
@@ -108,21 +115,22 @@ describe "Writing a grammar", ->
 
     describe "symbol", ->
       it "applies another rule in the grammar by name", ->
-        grammar = compiler.grammar
+        language = loadLanguage(compile(grammar
           name: "test_grammar"
           rules:
             the_rule: -> seq(@second_rule, "-", @third_rule)
             second_rule: -> "one"
             third_rule: -> "two"
+        ))
 
-        document.setLanguage(compiler.compileAndLoad(grammar))
+        document.setLanguage(language)
 
         document.setInputString("one-two").parse()
         assert.equal(document.rootNode.toString(), "(the_rule (second_rule) (third_rule))")
 
     describe "prec", ->
       it "alters the precedence and associativity of the given rule", ->
-        grammar = compiler.grammar
+        language = loadLanguage(compile(grammar
           name: "test_grammar"
           rules:
             _expression: -> choice(@sum, @product, @equation, @variable)
@@ -130,8 +138,9 @@ describe "Writing a grammar", ->
             sum: -> prec.left(1, seq(@_expression, "+", @_expression))
             equation: -> prec.right(0, seq(@_expression, "=", @_expression))
             variable: -> /\a+/
+        ))
 
-        document.setLanguage(compiler.compileAndLoad(grammar))
+        document.setLanguage(language)
 
         # product has higher precedence than sum
         document.setInputString("a + b * c").parse()
@@ -151,7 +160,7 @@ describe "Writing a grammar", ->
 
     describe "err", ->
       it "confines errors to the given subtree", ->
-        grammar = compiler.grammar
+        language = loadLanguage(compile(grammar
           name: "test_grammar"
           rules:
             the_rule: -> seq(@rule1, err(@rule2), @rule3, @rule4)
@@ -159,8 +168,9 @@ describe "Writing a grammar", ->
             rule2: -> "string2"
             rule3: -> "string3"
             rule4: -> "string4"
+        ))
 
-        document.setLanguage(compiler.compileAndLoad(grammar))
+        document.setLanguage(language)
 
         document.setInputString("string1 SOMETHING_ELSE string3 string4").parse()
         assert.equal(
@@ -173,15 +183,16 @@ describe "Writing a grammar", ->
 
   describe "ubiquitous tokens", ->
     it "allows the given tokens to appear anywhere in the input", ->
-      grammar = compiler.grammar
+      language = loadLanguage(compile(grammar
         name: "test_grammar"
         ubiquitous: -> [@ellipsis, " "]
         rules:
           the_rule: -> repeat(@word)
           word: -> /\w+/
           ellipsis: -> "..."
+      ))
 
-      document.setLanguage(compiler.compileAndLoad(grammar))
+      document.setLanguage(language)
 
       document.setInputString("one two ... three ... four").parse()
       assert.equal(
@@ -189,14 +200,15 @@ describe "Writing a grammar", ->
         "(the_rule (word) (word) (ellipsis) (word) (ellipsis) (word))")
 
     it "allows anonymous rules to be provided", ->
-      grammar = compiler.grammar
+      language = loadLanguage(compile(grammar
         name: "test_grammar"
         ubiquitous: -> ["...", "---"]
         rules:
           the_rule: -> repeat(@word)
           word: -> "hello"
+      ))
 
-      document.setLanguage(compiler.compileAndLoad(grammar))
+      document.setLanguage(language)
 
       document.setInputString("hello...hello---hello").parse()
       assert.equal(document.rootNode.toString(), "(the_rule (word) (word) (word))")
@@ -205,13 +217,14 @@ describe "Writing a grammar", ->
       assert.equal(document.rootNode.toString(), "(ERROR (word) (UNEXPECTED ' ') (word))")
 
     it "defaults to whitespace characters", ->
-      grammar = compiler.grammar
+      language = loadLanguage(compile(grammar
         name: "test_grammar"
         rules:
           the_rule: -> repeat(@word)
           word: -> "hello"
+      ))
 
-      document.setLanguage(compiler.compileAndLoad(grammar))
+      document.setLanguage(language)
 
       document.setInputString("hello hello\thello\nhello\rhello").parse()
       assert.equal(document.rootNode.toString(), "(the_rule (word) (word) (word) (word) (word))")
@@ -223,12 +236,13 @@ describe "Writing a grammar", ->
     describe "when the grammar has conflicts", ->
       it "raises an error describing the conflict", ->
         try
-          compiler.compile compiler.grammar
+          compile(grammar(
             name: "test_grammar"
             rules:
               sentence: -> choice(@first_rule, @second_rule)
               first_rule: -> seq("things", "stuff")
               second_rule: -> seq("things", "stuff")
+          ))
         catch e
           assert.match(e.message, /Unresolved conflict/)
           assert.match(e.message, /Lookahead symbol: END_OF_INPUT/)
@@ -241,13 +255,13 @@ describe "Writing a grammar", ->
     describe "when the grammar has no name", ->
       it "raises an error", ->
         assert.throws((->
-          compiler.grammar
+          grammar
             rules:
               the_rule: -> blank()
         ), /Grammar.*name.*string/)
 
         assert.throws((->
-          compiler.grammar
+          grammar
             name: {}
             rules:
               the_rule: -> blank()
@@ -256,14 +270,14 @@ describe "Writing a grammar", ->
     describe "when the grammar has no rules", ->
       it "raises an error", ->
         assert.throws((->
-          compiler.grammar
+          grammar
             name: "test_grammar"
         ), /Grammar.*rules.*object/)
 
     describe "when the grammar contains a reference to an undefined rule", ->
       it "throws an error with the rule name", ->
         assert.throws((->
-          compiler.grammar
+          grammar
             name: "test_grammar"
             rules:
               something: -> seq("(", @something_else, ")")
@@ -273,7 +287,7 @@ describe "Writing a grammar", ->
     describe "when one of the grammar rules is not a function", ->
       it "raises an error", ->
         assert.throws((->
-          compiler.grammar
+          grammar
             name: "test_grammar"
             rules:
               the_rule: blank()
@@ -282,7 +296,7 @@ describe "Writing a grammar", ->
     describe "when the grammar's ubiquitous value is not a function", ->
       it "raises an error", ->
         assert.throws((->
-          compiler.grammar
+          grammar
             ubiquitous: []
             name: "test_grammar"
             rules:
@@ -292,13 +306,14 @@ describe "Writing a grammar", ->
     describe "when one of the grammar's ubiquitous tokens is not a token", ->
       it "raises an error", ->
         try
-          compiler.compile compiler.grammar
+          compile(grammar(
             name: "test_grammar"
             ubiquitous: -> [@yyy]
             rules:
               xxx: -> seq(@yyy, @yyy)
               yyy: -> seq(@zzz, @zzz)
               zzz: -> "zzz"
+          ))
         catch e
           assert.match(e.message, /Not a token.*yyy/)
           assert.property(e, "isGrammarError")
@@ -308,8 +323,9 @@ describe "Writing a grammar", ->
     describe "when a symbol references an undefined rule", ->
       it "raises an error", ->
         assert.throws((->
-          compiler.compile compiler.grammar
+          compile(grammar(
             name: "test_grammar"
             rules:
               xxx: -> sym("yyy")
+          ))
         ), /Undefined.*rule.*yyy/)

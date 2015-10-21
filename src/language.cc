@@ -39,10 +39,10 @@ static std::string run_cmd(const char *cmd, const char *args[]) {
 
 NAN_METHOD(LoadLanguage) {
   Handle<String> js_src_filename = Handle<String>::Cast(info[0]);
-  Handle<String> js_language_name = Handle<String>::Cast(info[1]);
+  Handle<String> js_language_function_name = Handle<String>::Cast(info[1]);
   Handle<String> js_header_dir = Handle<String>::Cast(info[2]);
   std::string src_filename(*String::Utf8Value(js_src_filename));
-  std::string language_name(*String::Utf8Value(js_language_name));
+  std::string language_function_name(*String::Utf8Value(js_language_function_name));
   std::string header_dir(*String::Utf8Value(js_header_dir));
   std::string obj_filename(src_filename + ".o");
   std::string lib_filename(src_filename + ".so");
@@ -83,7 +83,7 @@ NAN_METHOD(LoadLanguage) {
   }
 
   const TSLanguage * (* language_fn)() = NULL;
-  error_code = uv_dlsym(&parser_lib, ("ts_language_" + language_name).c_str(), (void **)&language_fn);
+  error_code = uv_dlsym(&parser_lib, language_function_name.c_str(), (void **)&language_fn);
   if (error_code) {
     std::string message(uv_dlerror(&parser_lib));
     Nan::ThrowError(("Couldn't load language function - " + message).c_str());
