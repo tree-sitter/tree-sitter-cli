@@ -1,3 +1,1 @@
-const path = require('path');
-const api = require('./lib/api/index')
-console.log(api.includePath)
+console.log(require('./lib/api/include_path.js'))
