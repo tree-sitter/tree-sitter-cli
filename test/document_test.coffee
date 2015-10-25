@@ -38,51 +38,74 @@ describe "Document", ->
         assert.equal(null, document.children)
 
   describe "::setInput(input)", ->
-    describe "when the language has been set", ->
-      beforeEach ->
-        document.setLanguage(language)
+    it "reads from the given input when .parse() is called", ->
+      document.setLanguage(language)
 
-      it "parses the input", ->
-        document.setInput({
+      document.setInput({
+        read: ->
+          @_readIndex++
+          [
+            "first", "-", "word",
+            " ",
+            "second", "-", "word",
+            ""
+          ][@_readIndex - 1]
+
+        seek: (n) ->
+          0
+
+        _readIndex: 0,
+      }).parse()
+
+      assert.equal("(sentence (word1) (word2))", document.rootNode.toString())
+
+    it "allows the input to be retrieved later", ->
+      assert.equal(null, document.getInput())
+
+      input = {
+        read: ->,
+        seek: ->
+      }
+
+      document.setInput(input)
+      assert.equal(input, document.getInput())
+
+      document.setInput(null)
+      assert.equal(null, document.getInput())
+
+    describe "when the input.read() returns something other than a string", ->
+      it "stops reading", ->
+        document.setLanguage(language)
+        input = {
           read: ->
             @_readIndex++
             [
               "first", "-", "word",
-              " ",
-              "second", "-", "word",
-              ""
+              {},
+              "second-word",
+              " "
             ][@_readIndex - 1]
 
           seek: (n) ->
             0
 
           _readIndex: 0,
-        }).parse()
+        }
 
-        assert.equal("(sentence (word1) (word2))", document.rootNode.toString())
+        document.setInput(input).parse()
 
-      describe "when the input.read() returns something other than a string", ->
-        it "stops reading", ->
-          input = {
-            read: ->
-              @_readIndex++
-              [
-                "first", "-", "word",
-                {},
-                "second-word",
-                " "
-              ][@_readIndex - 1]
+        assert.equal("(sentence (word1))", document.rootNode.toString())
+        assert.equal(4, input._readIndex)
 
-            seek: (n) ->
-              0
+    describe "when given something that isn't an object", ->
+      it "throws an exception", ->
+        assert.throws((->
+          document.setInput("ok")
+        ), /Input.*object/)
 
-            _readIndex: 0,
-          }
-
-          document.setInput(input).parse()
-
-          assert.equal("(sentence (word1))", document.rootNode.toString())
-          assert.equal(4, input._readIndex)
+        assert.throws((->
+          document.setInput(5)
+        ), /Input.*object/)
 
     describe "when the supplied object does not implement ::seek(n)", ->
       it "throws an exception", ->
@@ -99,14 +122,6 @@ describe "Document", ->
             seek: (n) -> 0
           })
         ), /Input.*implement.*read/)
-
-    describe "when the language has not yet been set", ->
-      it "doesn't try to parse", ->
-        document.setInput({
-          read: -> ""
-          seek: (n) -> 0
-        })
-        assert.equal(null, document.children)
 
   describe "::edit({ position, charsAdded, charsRemoved })", ->
     input = null
@@ -190,7 +205,7 @@ describe "Document", ->
       assert.equal(oldRootNode.position, null)
       assert.equal(oldRootNode.size, null)
 
-  describe "::setDebug(callback)", ->
+  describe "::setDebugger(callback)", ->
     debugMessages = null
 
     beforeEach ->
@@ -202,6 +217,15 @@ describe "Document", ->
     it "calls the given callback for each parse event", ->
       document.setInputString("first-word second-word").parse()
       assert.includeMembers(debugMessages, ['reduce', 'accept', 'shift'])
+
+    it "allows the callback to be retrieved later", ->
+      callback = ->
+
+      document.setDebugger(callback)
+      assert.equal(callback, document.getDebugger())
+
+      document.setDebugger(false)
+      assert.equal(null, document.getDebugger())
 
     describe "when given a falsy value", ->
       beforeEach ->
