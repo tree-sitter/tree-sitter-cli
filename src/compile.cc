@@ -12,28 +12,28 @@ using std::get;
 using std::pair;
 using std::vector;
 
-static std::string StringFromJsString(Handle<String> js_string) {
+static std::string StringFromJsString(Local<String> js_string) {
   String::Utf8Value utf8_string(js_string);
   return std::string(*utf8_string);
 }
 
 template<typename T>
-Handle<T> ObjectGet(Handle<Object> object, const char *key) {
-  return Handle<T>::Cast(object->Get(Nan::New(key).ToLocalChecked()));
+Local<T> ObjectGet(Local<Object> object, const char *key) {
+  return Local<T>::Cast(object->Get(Nan::New(key).ToLocalChecked()));
 }
 
 template<typename T>
-Handle<T> ArrayGet(Handle<Array> array, uint32_t i) {
-  return Handle<T>::Cast(array->Get(i));
+Local<T> ArrayGet(Local<Array> array, uint32_t i) {
+  return Local<T>::Cast(array->Get(i));
 }
 
-rule_ptr RuleFromJsRule(Handle<Object> js_rule) {
+rule_ptr RuleFromJsRule(Local<Object> js_rule) {
   if (!js_rule->IsObject()) {
     Nan::ThrowTypeError("Expected rule to be an object");
     return rule_ptr();
   }
 
-  Handle<String> js_type = ObjectGet<String>(js_rule, "type");
+  Local<String> js_type = ObjectGet<String>(js_rule, "type");
   if (!js_type->IsString()) {
     Nan::ThrowTypeError("Expected rule type to be a string");
     return rule_ptr();
@@ -44,11 +44,11 @@ rule_ptr RuleFromJsRule(Handle<Object> js_rule) {
     return blank();
 
   if (type == "CHOICE") {
-    Handle<Array> js_members = ObjectGet<Array>(js_rule, "members");
+    Local<Array> js_members = ObjectGet<Array>(js_rule, "members");
     vector<rule_ptr> members;
     uint32_t length = js_members->Length();
     for (uint32_t i = 0; i < length; i++) {
-      Handle<Object> js_member = ArrayGet<Object>(js_members, i);
+      Local<Object> js_member = ArrayGet<Object>(js_members, i);
       rule_ptr member = RuleFromJsRule(js_member);
       if (member.get())
         members.push_back(member);
@@ -71,11 +71,11 @@ rule_ptr RuleFromJsRule(Handle<Object> js_rule) {
     return repeat1(RuleFromJsRule(ObjectGet<Object>(js_rule, "value")));
 
   if (type == "SEQ") {
-    Handle<Array> js_members = ObjectGet<Array>(js_rule, "members");
+    Local<Array> js_members = ObjectGet<Array>(js_rule, "members");
     vector<rule_ptr> members;
     uint32_t length = js_members->Length();
     for (uint32_t i = 0; i < length; i++) {
-      Handle<Object> js_member = ArrayGet<Object>(js_members, i);
+      Local<Object> js_member = ArrayGet<Object>(js_members, i);
       rule_ptr member = RuleFromJsRule(js_member);
       if (member.get())
         members.push_back(member);
@@ -127,8 +127,8 @@ rule_ptr RuleFromJsRule(Handle<Object> js_rule) {
   return rule_ptr();
 }
 
-pair<Grammar, bool> GrammarFromJsGrammar(Handle<Object> js_grammar) {
-  Handle<Object> js_rules = ObjectGet<Object>(js_grammar, "rules");
+pair<Grammar, bool> GrammarFromJsGrammar(Local<Object> js_grammar) {
+  Local<Object> js_rules = ObjectGet<Object>(js_grammar, "rules");
   if (!js_rules->IsObject()) {
     Nan::ThrowTypeError("Expected rules to be an object");
     return { Grammar({}), false };
@@ -140,7 +140,7 @@ pair<Grammar, bool> GrammarFromJsGrammar(Handle<Object> js_grammar) {
   for (uint32_t i = 0; i < length; i++) {
     Local<String> js_rule_name = Local<String>::Cast(rule_names->Get(i));
     string rule_name = StringFromJsString(js_rule_name);
-    rule_ptr rule = RuleFromJsRule(Handle<Object>::Cast(js_rules->Get(js_rule_name)));
+    rule_ptr rule = RuleFromJsRule(Local<Object>::Cast(js_rules->Get(js_rule_name)));
     if (rule.get()) {
       rules.push_back({ rule_name, rule });
     } else {
@@ -150,7 +150,7 @@ pair<Grammar, bool> GrammarFromJsGrammar(Handle<Object> js_grammar) {
 
   Grammar result(rules);
 
-  Handle<Array> js_ubiquitous_tokens = ObjectGet<Array>(js_grammar, "ubiquitous");
+  Local<Array> js_ubiquitous_tokens = ObjectGet<Array>(js_grammar, "ubiquitous");
   if (!js_ubiquitous_tokens->IsUndefined()) {
     if (!js_ubiquitous_tokens->IsArray()) {
       Nan::ThrowTypeError("Expected ubiquitous_tokens to be an array");
@@ -158,14 +158,13 @@ pair<Grammar, bool> GrammarFromJsGrammar(Handle<Object> js_grammar) {
     }
 
     vector<rule_ptr> ubiquitous_tokens;
-    const uint32_t length = js_ubiquitous_tokens->Length();
-    for (uint32_t i = 0; i < length; i++)
+    for (uint32_t i = 0, length = js_ubiquitous_tokens->Length(); i < length; i++)
       ubiquitous_tokens.push_back(RuleFromJsRule(ArrayGet<Object>(js_ubiquitous_tokens, i)));
 
     result.ubiquitous_tokens(ubiquitous_tokens);
   }
 
-  Handle<Array> js_expected_conflicts = ObjectGet<Array>(js_grammar, "expectedConflicts");
+  Local<Array> js_expected_conflicts = ObjectGet<Array>(js_grammar, "expectedConflicts");
   if (!js_expected_conflicts->IsUndefined()) {
     if (!js_expected_conflicts->IsArray()) {
       Nan::ThrowTypeError("Expected expectedConflicts to be an array");
@@ -173,18 +172,16 @@ pair<Grammar, bool> GrammarFromJsGrammar(Handle<Object> js_grammar) {
     }
 
     vector<vector<string>> expected_conflicts;
-    const uint32_t length = js_ubiquitous_tokens->Length();
-    for (uint32_t i = 0; i < length; i++) {
+    for (uint32_t i = 0, length = js_expected_conflicts->Length(); i < length; i++) {
       vector<string> conflict_set;
-      Handle<Array> js_conflict_set = ArrayGet<Array>(js_expected_conflicts, i);
-      const uint32_t conflict_set_length = js_conflict_set->Length();
+      Local<Array> js_conflict_set = ArrayGet<Array>(js_expected_conflicts, i);
       if (!js_conflict_set->IsArray()) {
         Nan::ThrowTypeError("Expected each expectedConflicts entry to be an array");
         return { Grammar({}), false };
       }
 
-      for (uint32_t j = 0; j < conflict_set_length; j++) {
-        Handle<String> conflict_symbol_name = ArrayGet<String>(js_conflict_set, j);
+      for (uint32_t j = 0, conflict_set_length = js_conflict_set->Length(); j < conflict_set_length; j++) {
+        Local<String> conflict_symbol_name = ArrayGet<String>(js_conflict_set, j);
         if (!conflict_symbol_name->IsString()) {
           Nan::ThrowTypeError("Expected each item within each expectedConflicts entry to be a string");
           return { Grammar({}), false };
@@ -203,13 +200,13 @@ pair<Grammar, bool> GrammarFromJsGrammar(Handle<Object> js_grammar) {
 }
 
 NAN_METHOD(Compile) {
-  Handle<Object> js_grammar = Handle<Object>::Cast(info[0]);
+  Local<Object> js_grammar = Local<Object>::Cast(info[0]);
   if (!js_grammar->IsObject()) {
     Nan::ThrowTypeError("Expected grammar to be an object");
     return;
   }
 
-  Handle<String> js_name = ObjectGet<String>(js_grammar, "name");
+  Local<String> js_name = ObjectGet<String>(js_grammar, "name");
   if (!js_name->IsString()) {
     Nan::ThrowTypeError("Expected grammar name to be a string");
     return;
