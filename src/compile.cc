@@ -165,6 +165,40 @@ pair<Grammar, bool> GrammarFromJsGrammar(Handle<Object> js_grammar) {
     result.ubiquitous_tokens(ubiquitous_tokens);
   }
 
+  Handle<Array> js_expected_conflicts = ObjectGet<Array>(js_grammar, "expectedConflicts");
+  if (!js_expected_conflicts->IsUndefined()) {
+    if (!js_expected_conflicts->IsArray()) {
+      Nan::ThrowTypeError("Expected expectedConflicts to be an array");
+      return { Grammar({}), false };
+    }
+
+    vector<vector<string>> expected_conflicts;
+    const uint32_t length = js_ubiquitous_tokens->Length();
+    for (uint32_t i = 0; i < length; i++) {
+      vector<string> conflict_set;
+      Handle<Array> js_conflict_set = ArrayGet<Array>(js_expected_conflicts, i);
+      const uint32_t conflict_set_length = js_conflict_set->Length();
+      if (!js_conflict_set->IsArray()) {
+        Nan::ThrowTypeError("Expected each expectedConflicts entry to be an array");
+        return { Grammar({}), false };
+      }
+
+      for (uint32_t j = 0; j < conflict_set_length; j++) {
+        Handle<String> conflict_symbol_name = ArrayGet<String>(js_conflict_set, j);
+        if (!conflict_symbol_name->IsString()) {
+          Nan::ThrowTypeError("Expected each item within each expectedConflicts entry to be a string");
+          return { Grammar({}), false };
+        }
+        conflict_set.push_back(StringFromJsString(conflict_symbol_name));
+      }
+
+      expected_conflicts.push_back(conflict_set);
+    }
+
+    result.expected_conflicts(expected_conflicts);
+  }
+
+
   return { result, true };
 }
 

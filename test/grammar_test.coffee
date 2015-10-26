@@ -232,6 +232,43 @@ describe "Writing a grammar", ->
       document.setInputString("hello.hello").parse()
       assert.equal(document.rootNode.toString(), "(ERROR (word) (UNEXPECTED '.') (word))")
 
+  describe "expected conflicts", ->
+    it "causes the grammar to work even with LR(1), conflicts", ->
+      grammarOptions =
+        name: "test_grammar"
+        rules:
+          sentence: -> choice(
+            seq(@first_rule, "c", "d"),
+            seq(@second_rule, "c", "e"))
+          first_rule: -> seq("a", "b")
+          second_rule: -> seq("a", "b")
+
+      try
+        compile(grammar(grammarOptions))
+      catch e
+        assert.match(e.message, /Unresolved conflict/)
+        threw = true
+      assert.ok(threw, "Expected a conflict exception")
+
+      grammarOptions.expectedConflicts = -> [
+        [@first_rule, @second_rule]
+      ]
+
+      i = 0
+
+      document.setDebugger (name, params, type) ->
+        i++
+        process.exit(1) if i >= 1000
+
+      language = loadLanguage(compile(grammar(grammarOptions)))
+      document.setLanguage(language)
+
+      document.setInputString("a b c d").parse()
+      assert.equal("(sentence (first_rule))", document.rootNode.toString())
+
+      document.setInputString("a b c e").parse()
+      assert.equal("(sentence (second_rule))", document.rootNode.toString())
+
   describe "error handling", ->
     describe "when the grammar has conflicts", ->
       it "raises an error describing the conflict", ->
