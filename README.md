@@ -17,39 +17,36 @@ should export a single function that takes an object containing the rule
 builder functions, and returns an object describing the language's grammar:
 
 ```coffee-script
-module.exports =
-({choice, repeat, seq}) ->
-  {
-    name: "arithmetic"
+module.exports = grammar
+  name: "arithmetic"
 
-    ubiquitous: -> [@comment, /\s/]
+  ubiquitous: -> [@comment, /\s/]
 
-    rules:
-      program: -> repeat(choice(
-        @assignment,
-        @expression_statement))
+  rules:
+    program: -> repeat(choice(
+      @assignment_statement,
+      @expression_statement))
 
-      assignment: -> seq(
-        @variable, "=", @expression, ";")
+    assignment_statement: -> seq(
+      @variable, "=", @expression, ";")
 
-      expression_statement: -> seq(
-        @expression, ";")
+    expression_statement: -> seq(
+      @expression, ";")
 
-      expression: -> choice(
-        @variable,
-        @number,
-        prec(1, seq(@expression, "+", @expression)),
-        prec(1, seq(@expression, "-", @expression)),
-        prec(2, seq(@expression, "*", @expression)),
-        prec(2, seq(@expression, "/", @expression)),
-        prec(3, seq(@expression, "^", @expression)))
+    expression: -> choice(
+      @variable,
+      @number,
+      prec(1, seq(@expression, "+", @expression)),
+      prec(1, seq(@expression, "-", @expression)),
+      prec(2, seq(@expression, "*", @expression)),
+      prec(2, seq(@expression, "/", @expression)),
+      prec(3, seq(@expression, "^", @expression)))
 
-      variable: -> /\a\w+/
+    variable: -> /\a\w+/
 
-      number: -> /\d+/
+    number: -> /\d+/
 
-      comment: -> /#.*/
-  }
+    comment: -> /#.*/
 ```
 
 Run `tree-sitter compile`. This will generate a C function for parsing your
