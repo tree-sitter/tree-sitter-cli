@@ -59,6 +59,24 @@ describe "Writing a grammar", ->
         document.setInputString("def").parse()
         assert.equal(document.rootNode.toString(), "(ERROR (UNEXPECTED 'd'))")
 
+      it "handles unicode escape sequences in regular expressions", ->
+        language = loadLanguage(compile(grammar
+          name: "test_grammar"
+          rules:
+            the_rule: -> choice(/\u09afb/, /\u19afc/)
+        ))
+
+        document.setLanguage(language)
+
+        document.setInputString("\u09af" + "b").parse()
+        assert.equal(document.rootNode.toString(), "(the_rule)")
+
+        document.setInputString("\u09af" + "c").parse()
+        assert.equal(document.rootNode.toString(), "(ERROR (UNEXPECTED 'c'))")
+
+        document.setInputString("\u19af" + "c").parse()
+        assert.equal(document.rootNode.toString(), "(the_rule)")
+
     describe "repeat", ->
       it "applies the given rule any number of times", ->
         language = loadLanguage(compile(grammar
