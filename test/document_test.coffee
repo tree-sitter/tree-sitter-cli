@@ -202,8 +202,10 @@ describe "Document", ->
       document.edit(position: 0, charsRemoved: 1).parse()
       assert.equal(oldRootNode.isValid(), false)
       assert.equal(oldRootNode.name, null)
-      assert.equal(oldRootNode.position, null)
-      assert.equal(oldRootNode.size, null)
+      assert.equal(oldRootNode.start_index, null)
+      assert.equal(oldRootNode.end_index, null)
+      assert.equal(oldRootNode.start_point, null)
+      assert.equal(oldRootNode.end_point, null)
 
   describe "::setDebugger(callback)", ->
     debugMessages = null

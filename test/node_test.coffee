@@ -47,16 +47,27 @@ describe "ASTNode", ->
         sumNode.namedChildren.map (child) -> child.type
       )
 
-  describe "::size", ->
-    it "returns the number of bytes spanned by the node", ->
-      assert.equal(10, sumNode.size)
-      assert.equal(3, sumNode.namedChildren[0].size)
-      assert.equal(4, sumNode.namedChildren[1].size)
+  describe "::startIndex and ::endIndex", ->
+    it "returns the character index where the node starts/ends in the text", ->
+      assert.equal(0, sumNode.startIndex)
+      assert.equal(10, sumNode.endIndex)
+      assert.deepEqual([0, 4, 6], sumNode.children.map (child) -> child.startIndex)
+      assert.deepEqual([3, 5, 10], sumNode.children.map (child) -> child.endIndex)
 
-  describe "::position", ->
-    it "returns the number of bytes spanned by the node", ->
-      assert.equal(0, sumNode.position)
-      assert.deepEqual([0, 4, 6], sumNode.children.map (child) -> child.position)
+  describe "::startPosition and ::endPosition", ->
+    it "returns the row and column where the node starts/ends in the text", ->
+      assert.deepEqual({row: 0, column: 0}, sumNode.startPosition)
+      assert.deepEqual({row: 0, column: 10}, sumNode.endPosition)
+      assert.deepEqual([
+        {row: 0, column: 0},
+        {row: 0, column: 4},
+        {row: 0, column: 6}
+      ], sumNode.children.map (child) -> child.startPosition)
+      assert.deepEqual([
+        {row: 0, column: 3},
+        {row: 0, column: 5},
+        {row: 0, column: 10}
+      ], sumNode.children.map (child) -> child.endPosition)
 
   describe "::parent", ->
     it "returns the node's parent", ->
