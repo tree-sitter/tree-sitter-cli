@@ -25,7 +25,7 @@ NAN_PROPERTY_GETTER(GetProperty) {
 
   if (!rules->HasRealNamedProperty(property)) {
     Nan::Utf8String property_name(property);
-    info.GetReturnValue().Set(Nan::TypeError((std::string("Undefined rule '") + *property_name + "'").c_str()));
+    info.GetReturnValue().Set(Nan::ReferenceError((std::string("Undefined rule '") + *property_name + "'").c_str()));
     return;
   }
 

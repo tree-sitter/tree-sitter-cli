@@ -150,18 +150,18 @@ pair<Grammar, bool> GrammarFromJsGrammar(Local<Object> js_grammar) {
 
   Grammar result(rules);
 
-  Local<Array> js_ubiquitous_tokens = ObjectGet<Array>(js_grammar, "ubiquitous");
-  if (!js_ubiquitous_tokens->IsUndefined()) {
-    if (!js_ubiquitous_tokens->IsArray()) {
-      Nan::ThrowTypeError("Expected ubiquitous_tokens to be an array");
+  Local<Array> js_extra_tokens = ObjectGet<Array>(js_grammar, "extraTokens");
+  if (!js_extra_tokens->IsUndefined()) {
+    if (!js_extra_tokens->IsArray()) {
+      Nan::ThrowTypeError("Expected extra tokens to be an array");
       return { Grammar({}), false };
     }
 
-    vector<rule_ptr> ubiquitous_tokens;
-    for (uint32_t i = 0, length = js_ubiquitous_tokens->Length(); i < length; i++)
-      ubiquitous_tokens.push_back(RuleFromJsRule(ArrayGet<Object>(js_ubiquitous_tokens, i)));
+    vector<rule_ptr> extra_tokens;
+    for (uint32_t i = 0, length = js_extra_tokens->Length(); i < length; i++)
+      extra_tokens.push_back(RuleFromJsRule(ArrayGet<Object>(js_extra_tokens, i)));
 
-    result.ubiquitous_tokens(ubiquitous_tokens);
+    result.extra_tokens(extra_tokens);
   }
 
   Local<Array> js_expected_conflicts = ObjectGet<Array>(js_grammar, "expectedConflicts");
