@@ -3,8 +3,6 @@
 #include <string>
 #include "tree_sitter/runtime.h"
 #include "nan.h"
-#include <unistd.h>
-#include <sys/wait.h>
 
 using namespace v8;
 
@@ -12,75 +10,14 @@ namespace node_tree_sitter_compiler {
 
 static Nan::Persistent<Function> constructor;
 
-static std::string run_cmd(const char *cmd, const char *args[]) {
-  int child_pid = fork();
-  if (child_pid == 0) {
-    close(0);
-    dup2(1, 0);
-    dup2(2, 1);
-    dup2(1, 2);
-    execvp(cmd, (char * const * )args);
-    return "";
-  } else if (child_pid > 0) {
-    int status;
-    waitpid(child_pid, &status, 0);
-    if (WIFEXITED(status)) {
-      if (WEXITSTATUS(status) == 0)
-        return "";
-      else
-        return "command failed";
-    } else {
-      return "child process did not exit";
-    }
-  } else {
-    return "fork failed";
-  }
-}
-
 NAN_METHOD(LoadLanguage) {
-  Handle<String> js_src_filename = Handle<String>::Cast(info[0]);
+  Handle<String> js_lib_file_name = Handle<String>::Cast(info[0]);
   Handle<String> js_language_function_name = Handle<String>::Cast(info[1]);
-  Handle<String> js_header_dir = Handle<String>::Cast(info[2]);
-  std::string src_filename(*String::Utf8Value(js_src_filename));
   std::string language_function_name(*String::Utf8Value(js_language_function_name));
-  std::string header_dir(*String::Utf8Value(js_header_dir));
-  std::string obj_filename(src_filename + ".o");
-  std::string lib_filename(src_filename + ".so");
-
-  const char *compile_argv[] = {
-    "gcc",
-    "-x", "c",
-    "-fPIC",
-    "-I", header_dir.c_str(),
-    "-c", src_filename.c_str(),
-    "-o", obj_filename.c_str(),
-    NULL
-  };
-
-  std::string error = run_cmd("gcc", compile_argv);
-
-  if (!error.empty()) {
-    Nan::ThrowError(("Failed to compile C code - " + error).c_str());
-    return;
-  }
-
-  const char *link_argv[] = {
-    "gcc",
-    "-shared",
-    "-Wl", obj_filename.c_str(),
-    "-o", lib_filename.c_str(),
-    NULL
-  };
-
-  error = run_cmd("gcc", link_argv);
-
-  if (!error.empty()) {
-    Nan::ThrowError(("Failed to link C code - " + error).c_str());
-    return;
-  }
+  std::string lib_file_name(*String::Utf8Value(js_lib_file_name));
 
   uv_lib_t parser_lib;
-  int error_code = uv_dlopen(lib_filename.c_str(), &parser_lib);
+  int error_code = uv_dlopen(lib_file_name.c_str(), &parser_lib);
   if (error_code) {
     std::string message(uv_dlerror(&parser_lib));
     Nan::ThrowError(("Couldn't open language file - " + message).c_str());
