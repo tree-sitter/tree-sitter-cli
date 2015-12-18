@@ -47,7 +47,7 @@ NAN_METHOD(LoadLanguage) {
   std::string obj_filename(src_filename + ".o");
   std::string lib_filename(src_filename + ".so");
 
-  std::string error = run_cmd("gcc", (const char *[]){
+  const char *compile_argv[] = {
     "gcc",
     "-x", "c",
     "-fPIC",
@@ -55,19 +55,24 @@ NAN_METHOD(LoadLanguage) {
     "-c", src_filename.c_str(),
     "-o", obj_filename.c_str(),
     NULL
-  });
+  };
+
+  std::string error = run_cmd("gcc", compile_argv);
+
   if (!error.empty()) {
     Nan::ThrowError(("Failed to compile C code - " + error).c_str());
     return;
   }
 
-  error = run_cmd("gcc", (const char *[]){
+  const char *link_argv[] = {
     "gcc",
     "-shared",
     "-Wl", obj_filename.c_str(),
     "-o", lib_filename.c_str(),
     NULL
-  });
+  };
+
+  error = run_cmd("gcc", link_argv);
 
   if (!error.empty()) {
     Nan::ThrowError(("Failed to link C code - " + error).c_str());
