@@ -2,6 +2,7 @@
 
 var compileCommand = require("./lib/cli/compile"),
     testCommand = require("./lib/cli/test"),
+    parseCommand = require("./lib/cli/parse"),
     path = require("path"),
     argv = require("yargs").argv;
 
@@ -15,6 +16,13 @@ switch (argv._[0]) {
       focus: argv.f || argv.focus,
       debug: argv.d || argv.debug
     }, process.exit);
+    break;
+
+  case "parse":
+    parseCommand({
+      debug: argv.d || argv.debug,
+      codePath: argv._[1]
+    });
     break;
 
   case undefined:
