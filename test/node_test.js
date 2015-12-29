@@ -7,6 +7,8 @@ const grammar = compiler.dsl.grammar;
 const seq = compiler.dsl.seq;
 const choice = compiler.dsl.choice;
 const prec = compiler.dsl.prec;
+const repeat = compiler.dsl.repeat;
+const token = compiler.dsl.token;
 
 describe("ASTNode", () => {
   let document, language, rootNode, sumNode;
@@ -45,7 +47,10 @@ describe("ASTNode", () => {
 
         number: $ => (/\d+/),
 
-        variable: $ => (/\a\w+/),
+        variable: $ => token(seq(
+          /\a/,
+          repeat(choice(/\w/, "👍", "👎"))
+        )),
       }
     })));
   });
@@ -81,10 +86,14 @@ describe("ASTNode", () => {
 
   describe("::startIndex and ::endIndex", () => {
     it("returns the character index where the node starts/ends in the text", () => {
+      var inputString = "a👍👎1 / b👎c👎";
+      document.setInputString(inputString).parse()
+      sumNode = document.rootNode.children[0];
+
       assert.equal(0, sumNode.startIndex)
-      assert.equal(10, sumNode.endIndex)
-      assert.deepEqual([0, 4, 6], sumNode.children.map(child => child.startIndex))
-      assert.deepEqual([3, 5, 10], sumNode.children.map(child => child.endIndex))
+      assert.equal(15, sumNode.endIndex)
+      assert.deepEqual([0, 7, 9], sumNode.children.map(child => child.startIndex))
+      assert.deepEqual([6, 8, 15], sumNode.children.map(child => child.endIndex))
     });
   });
 
