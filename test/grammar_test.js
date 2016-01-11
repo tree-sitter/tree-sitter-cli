@@ -328,14 +328,6 @@ describe("Writing a grammar", () => {
         [$.first_rule, $.second_rule]
       ]
 
-      let i = 0
-
-      document.setDebugger((name, params, type) => {
-        i++
-        if (i >= 1000)
-          process.exit(1)
-      })
-
       let language = compiler.loadLanguage(compiler.compile(grammar(grammarOptions)))
       document.setLanguage(language)
 
