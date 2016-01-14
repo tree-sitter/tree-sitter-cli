@@ -31,7 +31,8 @@
     "yargs": "1.3.x"
   },
   "devDependencies": {
-    "mocha": "1.17.x",
-    "chai": "1.9.x"
+    "chai": "1.9.x",
+    "jsonschema": "^1.0.3",
+    "mocha": "1.17.x"
   }
 }
