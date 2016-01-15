@@ -342,6 +342,60 @@ describe("Writing a grammar", () => {
     });
   });
 
+  describe("extending another grammar", () => {
+    it("allows rules, extras, and conflicts to be added", () => {
+      let grammar1 = grammar({
+        name: 'grammar1',
+        extras: $ => [' '],
+        rules: {
+          thing: $ => repeat($.triple),
+          triple: $ => seq($.word, $.word, $.word),
+          word: $ => (/\w+/)
+        }
+      });
+
+      document.setLanguage(compileAndLoadLanguage(grammar1))
+      document.setInputString("one two three").parse()
+      assert.equal(document.rootNode.toString(), "(thing (triple (word) (word) (word)))");
+
+      document.setInputString("one two ... three").parse()
+      assert.equal(document.rootNode.toString(), "(ERROR (word) (word) (UNEXPECTED '.') (word))")
+
+      let grammar2 = grammar(grammar1, {
+        name: "grammar2",
+        extras: ($, original) => original.concat([ $.ellipsis ]),
+        rules: {
+          ellipsis: $ => '...'
+        }
+      })
+
+      document.setLanguage(compileAndLoadLanguage(grammar2))
+      document.setInputString("one two ... three").parse()
+      assert.equal(document.rootNode.toString(), "(thing (triple (word) (word) (ellipsis) (word)))")
+
+      document.setInputString("one two ... three ... four").parse()
+      assert.equal(document.rootNode.toString(), "(ERROR (triple (word) (word) (ellipsis) (word)) (ellipsis) (word) (UNEXPECTED <EOF>))")
+
+      let grammar3 = grammar(grammar2, {
+        name: "grammar3",
+        conflicts: $ => [[$.triple, $.double]],
+        rules: {
+          thing: ($, original) => choice(
+            original,
+            repeat($.double)
+          ),
+          double: $ => seq($.word, $.word),
+        }
+      });
+
+      document.setLanguage(compileAndLoadLanguage(grammar3));
+      document.setInputString("one two ... three ... four").parse();
+      assert.equal(
+        document.rootNode.toString(),
+        "(thing (double (word) (word)) (ellipsis) (double (word) (ellipsis) (word)))");
+    });
+  });
+
   describe("error handling", () => {
     describe("when the grammar has conflicts", () => {
       it("raises an error describing the conflict", () => {
@@ -396,7 +450,7 @@ describe("Writing a grammar", () => {
           grammar({
             name: "test_grammar",
           })
-        ), /Grammar.*rules.*object/)
+        ), /Grammar.*must have.*rule/)
       });
     });
 
@@ -426,28 +480,28 @@ describe("Writing a grammar", () => {
       });
     });
 
-    describe("when the grammar's ubiquitous value is not a function", () => {
+    describe("when the grammar's extras value is not a function", () => {
       it("raises an error", () => {
         assert.throws((() =>
           grammar({
-            ubiquitous: [],
+            extras: [],
             name: "test_grammar",
             rules: {
               the_rule: $ => blank()
             }
           })
-        ), /Grammar.*ubiquitous.*function/)
+        ), /Grammar.*extras.*function/)
       });
     });
 
-    describe("when one of the grammar's ubiquitous tokens is not a token", () => {
+    describe("when one of the grammar's extras tokens is not a token", () => {
       it("raises an error", () => {
         let threw = false;
 
         try {
           compiler.compile(grammar({
             name: "test_grammar",
-            ubiquitous: $ => [$.yyy],
+            extras: $ => [$.yyy],
             rules: {
               xxx: $ => seq($.yyy, $.yyy),
               yyy: $ => seq($.zzz, $.zzz),
