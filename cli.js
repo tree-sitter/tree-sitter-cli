@@ -21,7 +21,8 @@ switch (argv._[0]) {
   case "parse":
     parseCommand({
       debug: argv.d || argv.debug,
-      codePath: argv._[1]
+      codePath: argv._[1],
+      print: argv.print !== false
     });
     break;
 
