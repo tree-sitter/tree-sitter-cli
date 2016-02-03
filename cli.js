@@ -22,8 +22,10 @@ switch (argv._[0]) {
     parseCommand({
       debug: argv.d || argv.debug,
       codePath: argv._[1],
-      print: argv.print !== false
-    });
+      print: argv.print,
+      profile: argv.profile,
+      repeat: argv.repeat
+    }, process.exit);
     break;
 
   case undefined:
