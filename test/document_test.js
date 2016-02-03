@@ -139,6 +139,27 @@ describe("Document", () => {
         ), /Input.*implement.*read/)
       });
     });
+
+    it("handles long input strings", () => {
+      const repeatCount = 10000
+      const wordCount = 4 * repeatCount
+      const inputString = "first-word second-word αβ αβδ".repeat(repeatCount)
+
+      document
+        .setLanguage(language)
+        .setInputString(inputString)
+        .parse()
+
+      assert.equal(document.rootNode.type, 'sentence')
+      assert.equal(document.rootNode.children.length, wordCount)
+
+      document
+        .setInputString(inputString + "x!")
+        .parse()
+
+      assert.equal(document.rootNode.type, 'ERROR')
+      assert.equal(document.rootNode.children.length, wordCount + 1)
+    });
   });
 
   describe("::edit({ position, charsAdded, charsRemoved })", () => {
