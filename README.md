@@ -13,8 +13,7 @@ npm install tree-sitter-compiler
 ### Creating a language
 
 Create a `grammar.js` in the root directory of your module. This file
-should export a single function that takes an object containing the rule
-builder functions, and returns an object describing the language's grammar:
+should create and export a grammar object using tree-sitter's helper functions:
 
 ```js
 module.exports = grammar({
