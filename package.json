@@ -25,6 +25,7 @@
     "fs-extra": "^0.18.2",
     "mkdirp": "*",
     "nan": "^2.0.0",
+    "stackvis": "^0.3.0",
     "temp": "0.7.x",
     "tree-sitter": ">= 0.0.41",
     "vows": "0.7.x",
