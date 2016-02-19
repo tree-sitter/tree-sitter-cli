@@ -142,23 +142,6 @@ describe("Writing a grammar", () => {
         document.setInputString("1234").parse()
         assert.equal(document.rootNode.toString(), "(ERROR (UNEXPECTED '4'))")
       });
-
-      it("allows arrays to be used for sequences", () => {
-        let language = compileAndLoadLanguage(grammar({
-          name: "test_grammar",
-          rules: {
-            the_rule: $ => ["1", "2", "3"]
-          }
-        }))
-
-        document.setLanguage(language)
-
-        document.setInputString("123").parse()
-        assert.equal(document.rootNode.toString(), "(the_rule)")
-
-        document.setInputString("12").parse()
-        assert.equal(document.rootNode.toString(), "(ERROR (UNEXPECTED <EOF>))")
-      });
     });
 
     describe("choice", () => {
