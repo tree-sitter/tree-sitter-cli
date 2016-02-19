@@ -4,7 +4,7 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "http://github.com/maxbrunsfeld/node-tree-sitter-compiler.git"
+    "url": "http://github.com/tree-sitter/node-tree-sitter-compiler.git"
   },
   "description": "Incremental parsers for node",
   "keywords": [
