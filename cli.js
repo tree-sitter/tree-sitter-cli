@@ -33,6 +33,7 @@ switch (argv._[0]) {
 
     testCommand({
       focus: argv.f || argv.focus,
+      debugGraph: argv.D || argv['debug-graph'],
       debug: argv.d || argv.debug
     }, process.exit);
     break;
@@ -52,6 +53,7 @@ switch (argv._[0]) {
       ]);
 
     parseCommand({
+      debugGraph: argv.D || argv['debug-graph'],
       debug: argv.d || argv.debug,
       codePath: argv._[1],
       print: argv.print,
