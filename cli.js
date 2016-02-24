@@ -27,14 +27,14 @@ switch (argv._[0]) {
     if (needsHelp)
       usage("test", [
         "Flags",
-        "  -f <string> - Only run tests whose name contain the given string",
-        "  -d          - Output debugging information during parsing",
+        "  --focus, -f <string>  - Only run tests whose name contain the given string",
+        "  --debug, -d           - Output debugging information during parsing"
       ]);
 
     testCommand({
-      focus: argv.f || argv.focus,
-      debugGraph: argv.D || argv['debug-graph'],
-      debug: argv.d || argv.debug
+      focus: argv.focus || argv.f,
+      debug: argv.debug || argv.d,
+      debugGraph: argv['debug-graph'] || argv.D
     }, process.exit);
     break;
 
