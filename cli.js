@@ -46,18 +46,20 @@ switch (argv._[0]) {
         "Parse the given file using the parser in the current working directory.",
         "",
         "Arguments",
-        "  code-path        - The file to parse",
-        "  -p, --print      - Print the syntax tree",
-        "  --profile        - Profile parsing using dtrace (requires sudo)",
-        "  --repeat <count> - Parse the file the given number of times (useful for profiling)"
+        "  code-path          - The file to parse",
+        "  --print, -p        - Print the syntax tree",
+        "  --debug, -d        - Print a log of parse actions",
+        "  --debug-graph, -D  - Render a sequence of diagrams showing the changing parse stack",
+        "  --profile, -P      - Render a flame graph of the parse performance (requires sudo)",
+        "  --repeat <count>   - Parse the file the given number of times (useful for profiling)"
       ]);
 
     parseCommand({
-      debugGraph: argv.D || argv['debug-graph'],
-      debug: argv.d || argv.debug,
       codePath: argv._[1],
-      print: argv.print,
-      profile: argv.profile,
+      debugGraph: argv['debug-graph'] || argv.D,
+      debug: argv.debug || argv.d,
+      print: argv.print || argv.p,
+      profile: argv.profile || argv.P,
       repeat: argv.repeat
     }, process.exit);
     break;
