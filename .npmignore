@@ -4,6 +4,8 @@ out
 build
 *.xcodeproj
 
+/node-tree-sitter
+
 vendor/tree-sitter/*
 !vendor/tree-sitter/src
 !vendor/tree-sitter/include
