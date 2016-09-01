@@ -152,13 +152,6 @@ describe("Document", () => {
 
       assert.equal(document.rootNode.type, 'sentence')
       assert.equal(document.rootNode.children.length, wordCount)
-
-      document
-        .setInputString(inputString + "x!")
-        .parse()
-
-      assert.equal(document.rootNode.type, 'ERROR')
-      assert.equal(document.rootNode.children.length, wordCount + 1)
     });
   });
 

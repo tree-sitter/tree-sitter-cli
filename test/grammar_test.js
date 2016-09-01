@@ -137,10 +137,10 @@ describe("Writing a grammar", () => {
         assert.equal(document.rootNode.toString(), "(the_rule)")
 
         document.setInputString("12").parse()
-        assert.equal(document.rootNode.toString(), "(ERROR (UNEXPECTED <EOF>))")
+        assert.equal(document.rootNode.toString(), "(ERROR)")
 
         document.setInputString("1234").parse()
-        assert.equal(document.rootNode.toString(), "(ERROR (UNEXPECTED '4'))")
+        assert.equal(document.rootNode.toString(), "(ERROR (the_rule) (UNEXPECTED '4'))")
       });
     });
 
@@ -213,32 +213,6 @@ describe("Writing a grammar", () => {
         assert.equal(document.rootNode.toString(), "(equation (variable) (equation (variable) (variable)))")
       });
     });
-
-    describe("err", () => {
-      it("confines errors to the given subtree", () => {
-        let language = compileAndLoadLanguage(grammar({
-          name: "test_grammar",
-          rules: {
-            the_rule: $ => seq($.rule1, err($.rule2), $.rule3, $.rule4),
-            rule1: $ => "string1",
-            rule2: $ => "string2",
-            rule3: $ => "string3",
-            rule4: $ => "string4",
-          }
-        }))
-
-        document.setLanguage(language)
-
-        document.setInputString("string1 SOMETHING_ELSE string3 string4").parse()
-        assert.equal(
-          document.rootNode.toString(),
-          "(the_rule (rule1) (ERROR (UNEXPECTED 'S')) (rule3) (rule4))")
-        document.setInputString("string1 string2 SOMETHING_ELSE string4").parse()
-        assert.equal(
-          document.rootNode.toString(),
-          "(ERROR (rule1) (rule2) (UNEXPECTED 'S') (rule4))")
-      });
-    });
   });
 
   describe("extra tokens", () => {
@@ -278,7 +252,7 @@ describe("Writing a grammar", () => {
       assert.equal(document.rootNode.toString(), "(the_rule (word) (word) (word))");
 
       document.setInputString("hello hello").parse();
-      assert.equal(document.rootNode.toString(), "(ERROR (word) (UNEXPECTED ' ') (word))");
+      assert.equal(document.rootNode.toString(), "(the_rule (word) (ERROR (UNEXPECTED ' ')) (word))");
     });
 
     it("defaults to whitespace characters", () => {
@@ -296,7 +270,7 @@ describe("Writing a grammar", () => {
       assert.equal(document.rootNode.toString(), "(the_rule (word) (word) (word) (word) (word))")
 
       document.setInputString("hello.hello").parse()
-      assert.equal(document.rootNode.toString(), "(ERROR (word) (UNEXPECTED '.') (word))")
+      assert.equal(document.rootNode.toString(), "(the_rule (word) (ERROR (UNEXPECTED '.')) (word))")
     });
   });
 
@@ -342,7 +316,7 @@ describe("Writing a grammar", () => {
     });
   });
 
-  describe("extending another grammar", () => {
+  describe.only("extending another grammar", () => {
     it("allows rules, extras, and conflicts to be added", () => {
       let grammar1 = grammar({
         name: 'grammar1',
@@ -359,7 +333,7 @@ describe("Writing a grammar", () => {
       assert.equal(document.rootNode.toString(), "(thing (triple (word) (word) (word)))");
 
       document.setInputString("one two ... three").parse()
-      assert.equal(document.rootNode.toString(), "(ERROR (word) (word) (UNEXPECTED '.') (word))")
+      assert.equal(document.rootNode.toString(), "(thing (triple (word) (word) (ERROR (UNEXPECTED '.')) (word)))")
 
       let grammar2 = grammar(grammar1, {
         name: "grammar2",
@@ -374,7 +348,7 @@ describe("Writing a grammar", () => {
       assert.equal(document.rootNode.toString(), "(thing (triple (word) (word) (ellipsis) (word)))")
 
       document.setInputString("one two ... three ... four").parse()
-      assert.equal(document.rootNode.toString(), "(ERROR (triple (word) (word) (ellipsis) (word)) (ellipsis) (word) (UNEXPECTED <EOF>))")
+      assert.equal(document.rootNode.toString(), "(thing (triple (word) (word) (ellipsis) (word)) (ellipsis) (ERROR (word)))")
 
       let grammar3 = grammar(grammar2, {
         name: "grammar3",
