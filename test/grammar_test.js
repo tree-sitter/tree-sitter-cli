@@ -316,7 +316,7 @@ describe("Writing a grammar", () => {
     });
   });
 
-  describe.only("extending another grammar", () => {
+  describe("extending another grammar", () => {
     it("allows rules, extras, and conflicts to be added", () => {
       let grammar1 = grammar({
         name: 'grammar1',

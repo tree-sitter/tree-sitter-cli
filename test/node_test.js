@@ -138,17 +138,71 @@ describe("ASTNode", () => {
     });
   });
 
-  describe("::descendantForRange(min, max)", () => {
+  describe("::descendantForIndex(min, max)", () => {
     it("returns the smallest node that spans the given range", () => {
-      assert.equal('variable', sumNode.descendantForRange(1, 2).type)
-      assert.equal('+', sumNode.descendantForRange(4, 4).type)
+      assert.equal('variable', sumNode.descendantForIndex(1, 2).type)
+      assert.equal('+', sumNode.descendantForIndex(4, 4).type)
+
+      assert.throws(() => {
+        sumNode.descendantForIndex(1, {})
+      }, /Character index must be a number/)
+
+      assert.throws(() => {
+        sumNode.descendantForIndex()
+      }, /Must provide 1 or 2 character indices/)
     });
   });
 
-  describe("::namedDescendantForRange(min, max)", () => {
+  describe("::namedDescendantForIndex", function () {
+    it("returns the smallest node that spans the given range", function () {
+      assert.equal('variable', sumNode.descendantForIndex(1, 2).type)
+      assert.equal('+', sumNode.descendantForIndex(4, 4).type)
+    });
+  });
+
+  describe("::descendantForPosition(min, max)", () => {
+    it("returns the smallest node that spans the given range", () => {
+      assert.equal(
+        'variable',
+        sumNode.descendantForPosition(
+          {row: 0, column: 1},
+          {row: 0, column: 2}
+        ).type
+      );
+
+      assert.equal(
+        '+',
+        sumNode.descendantForPosition(
+          {row: 0, column: 4}
+        ).type
+      );
+
+      assert.throws(() => {
+        sumNode.descendantForPosition(1, {})
+      }, /Point must be a {row, column}/)
+
+      assert.throws(() => {
+        sumNode.descendantForPosition()
+      }, /Must provide 1 or 2 points/)
+    });
+  });
+
+  describe("::namedDescendantForPosition(min, max)", () => {
     it("returns the smalleset named node that spans the given range", () => {
-      assert.equal('variable', sumNode.namedDescendantForRange(1, 2).type)
-      assert.equal('sum', sumNode.namedDescendantForRange(4, 4).type)
+      assert.equal(
+        'variable',
+        sumNode.namedDescendantForPosition(
+          {row: 0, column: 1},
+          {row: 0, column: 2}
+        ).type
+      )
+
+      assert.equal(
+        'sum',
+        sumNode.namedDescendantForPosition(
+          {row: 0, column: 4}
+        ).type
+      )
     });
   });
 });

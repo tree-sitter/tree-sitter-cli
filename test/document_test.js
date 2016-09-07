@@ -253,13 +253,13 @@ describe("Document", () => {
     });
   });
 
-  describe("::setDebugger(callback)", () => {
+  describe("::setLogger(callback)", () => {
     let debugMessages;
 
     beforeEach(() => {
       debugMessages = []
       document.setLanguage(language)
-      document.setDebugger((msg, params) => {
+      document.setLogger((msg, params) => {
         debugMessages.push(msg)
       })
     });
@@ -272,16 +272,16 @@ describe("Document", () => {
     it("allows the callback to be retrieved later", () => {
       let callback = () => null;
 
-      document.setDebugger(callback)
-      assert.equal(callback, document.getDebugger())
+      document.setLogger(callback)
+      assert.equal(callback, document.getLogger())
 
-      document.setDebugger(false)
-      assert.equal(null, document.getDebugger())
+      document.setLogger(false)
+      assert.equal(null, document.getLogger())
     });
 
     describe("when given a falsy value", () => {
       beforeEach(() => {
-        document.setDebugger(false)
+        document.setLogger(false)
       });
 
       it("disables debugging", () => {
@@ -293,7 +293,7 @@ describe("Document", () => {
     describe("when given a truthy value that isn't a function", () => {
       it("raises an exception", () => {
         assert.throws((() =>
-          document.setDebugger("5")
+          document.setLogger("5")
         ), /Debug callback must .* function .* falsy/)
       });
     });
@@ -310,7 +310,7 @@ describe("Document", () => {
           errorMessages.push([message, error])
         };
 
-        document.setDebugger((msg, params) => {
+        document.setLogger((msg, params) => {
           throw thrownError;
         })
       });
