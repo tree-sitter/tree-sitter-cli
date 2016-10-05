@@ -179,7 +179,7 @@ describe("ASTNode", () => {
 
       assert.throws(() => {
         sumNode.descendantForPosition(1, {})
-      }, /Point must be a {row, column}/)
+      }, /Point.row must be a number/)
 
       assert.throws(() => {
         sumNode.descendantForPosition()
