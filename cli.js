@@ -20,7 +20,9 @@ switch (argv._[0]) {
         "  binding.gyp      - the build configuration file for the node.js binding",
       ]);
 
-    process.exit(compileCommand());
+    compileCommand({
+      profile: argv.profile || argv.P,
+    }, process.exit);
     break;
 
   case "test":
