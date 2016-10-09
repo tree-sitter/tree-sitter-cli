@@ -1,7 +1,7 @@
 {
   "targets": [
     {
-      "target_name": "tree_sitter_compiler_binding",
+      "target_name": "tree_sitter_cli_binding",
       "dependencies": [
         "vendor/tree-sitter/project.gyp:compiler",
       ],

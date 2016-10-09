@@ -1,4 +1,4 @@
-# tree-sitter compiler
+# tree-sitter-cli
 
 Incremental parsers for node
 

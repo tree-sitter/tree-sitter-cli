@@ -3,7 +3,7 @@
 #include <string>
 #include "nan.h"
 
-namespace node_tree_sitter_compiler {
+namespace node_tree_sitter_cli {
 namespace rule_builder {
 
 using namespace v8;
@@ -55,4 +55,4 @@ void Init(Handle<Object> exports) {
 }
 
 }  // namespace rule_builder
-}  // namespace node_tree_sitter_compiler
+}  // namespace node_tree_sitter_cli

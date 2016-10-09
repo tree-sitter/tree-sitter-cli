@@ -5,12 +5,12 @@
 #include <v8.h>
 #include "nan.h"
 
-namespace node_tree_sitter_compiler {
+namespace node_tree_sitter_cli {
 
 using namespace v8;
 
 void InitAll(Handle<Object> exports) {
-  node_tree_sitter_compiler::InitLanguage(exports);
+  node_tree_sitter_cli::InitLanguage(exports);
   exports->Set(
       Nan::New("compile").ToLocalChecked(),
       Nan::New<FunctionTemplate>(Compile)->GetFunction());
@@ -20,6 +20,6 @@ void InitAll(Handle<Object> exports) {
   rule_builder::Init(exports);
 }
 
-NODE_MODULE(tree_sitter_compiler_binding, InitAll)
+NODE_MODULE(tree_sitter_cli_binding, InitAll)
 
-}  // namespace node_tree_sitter_compiler
+}  // namespace node_tree_sitter_cli

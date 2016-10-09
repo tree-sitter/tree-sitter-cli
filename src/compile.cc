@@ -1,7 +1,7 @@
 #include "./compile.h"
 #include "tree_sitter/compiler.h"
 
-namespace node_tree_sitter_compiler {
+namespace node_tree_sitter_cli {
 
 using namespace v8;
 
@@ -18,4 +18,4 @@ NAN_METHOD(Compile) {
   }
 }
 
-}  // namespace node_tree_sitter_compiler
+}  // namespace node_tree_sitter_cli

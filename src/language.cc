@@ -6,7 +6,7 @@
 
 using namespace v8;
 
-namespace node_tree_sitter_compiler {
+namespace node_tree_sitter_cli {
 
 static Nan::Persistent<Function> constructor;
 
@@ -53,4 +53,4 @@ void InitLanguage(v8::Handle<v8::Object> exports) {
   constructor.Reset(tpl->GetFunction());
 }
 
-}  // namespace node_tree_sitter_compiler
+}  // namespace node_tree_sitter_cli
