@@ -2,12 +2,12 @@
 
 Incremental parsers for node
 
-[![Build Status](https://travis-ci.org/tree-sitter/node-tree-sitter-compiler.svg?branch=master)](https://travis-ci.org/tree-sitter/node-tree-sitter-compiler)
+[![Build Status](https://travis-ci.org/tree-sitter/tree-sitter-cli.svg?branch=master)](https://travis-ci.org/tree-sitter/tree-sitter-cli)
 
 ### Installation
 
 ```
-npm install tree-sitter-compiler
+npm install tree-sitter-cli
 ```
 
 ### Creating a language
