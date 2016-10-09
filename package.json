@@ -1,5 +1,5 @@
 {
-  "name": "tree-sitter-compiler",
+  "name": "tree-sitter-cli",
   "author": "Max Brunsfeld",
   "license": "MIT",
   "repository": {
