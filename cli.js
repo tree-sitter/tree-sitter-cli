@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-var compileCommand = require("./lib/cli/compile"),
+var generateCommand = require("./lib/cli/generate"),
     testCommand = require("./lib/cli/test"),
     parseCommand = require("./lib/cli/parse"),
     path = require("path"),
@@ -10,9 +10,9 @@ var execName = path.basename(process.argv[1]);
 var needsHelp = argv.help || argv.h;
 
 switch (argv._[0]) {
-  case "compile":
+  case "generate":
     if (needsHelp)
-      usage("compile", [
+      usage("generate", [
         "Read a `grammar.js` file in the current working directory, and create/update the following files:",
         "  src/grammar.json - the grammar in JSON format",
         "  src/parser.c     - the parser",
@@ -20,7 +20,7 @@ switch (argv._[0]) {
         "  binding.gyp      - the build configuration file for the node.js binding",
       ]);
 
-    compileCommand({
+    generateCommand({
       profile: argv.profile || argv.P,
     }, process.exit);
     break;
@@ -67,7 +67,7 @@ switch (argv._[0]) {
     break;
 
   default:
-    usage("<compile|test|parse> [flags]")
+    usage("<generate|test|parse> [flags]")
     break;
 }
 

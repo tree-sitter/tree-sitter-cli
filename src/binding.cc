@@ -1,4 +1,4 @@
-#include "./compile.h"
+#include "./generate.h"
 #include "./language.h"
 #include "./rule_builder.h"
 #include <node.h>
@@ -12,8 +12,8 @@ using namespace v8;
 void InitAll(Handle<Object> exports) {
   node_tree_sitter_cli::InitLanguage(exports);
   exports->Set(
-      Nan::New("compile").ToLocalChecked(),
-      Nan::New<FunctionTemplate>(Compile)->GetFunction());
+      Nan::New("generate").ToLocalChecked(),
+      Nan::New<FunctionTemplate>(Generate)->GetFunction());
   exports->Set(
       Nan::New("loadLanguage").ToLocalChecked(),
       Nan::New<FunctionTemplate>(LoadLanguage)->GetFunction());

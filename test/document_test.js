@@ -1,17 +1,15 @@
 'use strict';
 
 const assert = require("chai").assert;
-const compiler = require("..");
-const choice = compiler.dsl.choice;
-const repeat = compiler.dsl.repeat;
-const grammar = compiler.dsl.grammar;
-const Document = require("tree-sitter").Document;
+const {dsl, generate, loadLanguage} = require("..");
+const {choice, repeat, grammar} = dsl
+const {Document} = require("tree-sitter")
 
 describe("Document", () => {
   let document, language;
 
   before(() => {
-    language = compiler.loadLanguage(compiler.compile(grammar({
+    language = loadLanguage(generate(grammar({
       name: "test",
       rules: {
         sentence: $ => repeat(choice($.word1, $.word2, $.word3, $.word4)),

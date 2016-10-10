@@ -10,7 +10,7 @@
       ],
       "sources": [
         "src/binding.cc",
-        "src/compile.cc",
+        "src/generate.cc",
         "src/language.cc",
         "src/rule_builder.cc",
       ],

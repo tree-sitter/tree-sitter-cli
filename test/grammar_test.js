@@ -1,17 +1,10 @@
 'use strict';
 
 const jsonSchema = require('jsonschema');
-const assert = require("chai").assert;
-const compiler = require("..");
-const blank = compiler.dsl.blank;
-const choice = compiler.dsl.choice;
-const prec = compiler.dsl.prec;
-const err = compiler.dsl.err;
-const repeat = compiler.dsl.repeat;
-const seq = compiler.dsl.seq
-const sym = compiler.dsl.sym;
-const grammar = compiler.dsl.grammar;
-const Document = require("tree-sitter").Document;
+const {assert} = require("chai");
+const {dsl, generate, loadLanguage} = require("..");
+const {blank, choice, prec, repeat, seq, sym, grammar} = dsl
+const {Document} = require("tree-sitter")
 const GRAMMAR_SCHEMA = require("../vendor/tree-sitter/doc/grammar-schema")
 const schemaValidator = new jsonSchema.Validator();
 
@@ -25,7 +18,7 @@ describe("Writing a grammar", () => {
   describe("rules", () => {
     describe("blank", () => {
       it("matches the empty string", () => {
-        let language = compileAndLoadLanguage(grammar({
+        let language = generateAndLoadLanguage(grammar({
           name: "test_grammar",
           rules: {
             the_rule: $ => blank()
@@ -44,7 +37,7 @@ describe("Writing a grammar", () => {
 
     describe("string", () => {
       it("matches one particular string", () => {
-        let language = compileAndLoadLanguage(grammar({
+        let language = generateAndLoadLanguage(grammar({
           name: "test_grammar",
           rules: {
             the_rule: $ => "the-string"
@@ -63,7 +56,7 @@ describe("Writing a grammar", () => {
 
     describe("regex", () => {
       it("matches according to a regular expression", () => {
-        let language = compileAndLoadLanguage(grammar({
+        let language = generateAndLoadLanguage(grammar({
           name: "test_grammar",
           rules: {
             the_rule: $ => (/[a-c]+/)
@@ -80,7 +73,7 @@ describe("Writing a grammar", () => {
       });
 
       it("handles unicode escape sequences in regular expressions", () => {
-        let language = compileAndLoadLanguage(grammar({
+        let language = generateAndLoadLanguage(grammar({
           name: "test_grammar",
           rules: {
             the_rule: $ => choice(/\u09afb/, /\u19afc/)
@@ -102,7 +95,7 @@ describe("Writing a grammar", () => {
 
     describe("repeat", () => {
       it("applies the given rule any number of times", () => {
-        let language = compileAndLoadLanguage(grammar({
+        let language = generateAndLoadLanguage(grammar({
           name: "test_grammar",
           rules: {
             the_rule: $ => repeat("o")
@@ -124,7 +117,7 @@ describe("Writing a grammar", () => {
 
     describe("sequence", () => {
       it("applies a list of other rules in sequence", () => {
-        let language = compileAndLoadLanguage(grammar({
+        let language = generateAndLoadLanguage(grammar({
           name: "test_grammar",
           rules: {
             the_rule: $ => seq("1", "2", "3")
@@ -146,7 +139,7 @@ describe("Writing a grammar", () => {
 
     describe("choice", () => {
       it("applies any of a list of rules", () => {
-        let language = compileAndLoadLanguage(grammar({
+        let language = generateAndLoadLanguage(grammar({
           name: "test_grammar",
           rules: {
             the_rule: $ => choice("1", "2", "3")
@@ -165,7 +158,7 @@ describe("Writing a grammar", () => {
 
     describe("symbol", () => {
       it("applies another rule in the grammar by name", () => {
-        let language = compileAndLoadLanguage(grammar({
+        let language = generateAndLoadLanguage(grammar({
           name: "test_grammar",
           rules: {
             the_rule: $ => seq($.second_rule, "-", $.third_rule),
@@ -183,7 +176,7 @@ describe("Writing a grammar", () => {
 
     describe("prec", () => {
       it("alters the precedence and associativity of the given rule", () => {
-        let language = compileAndLoadLanguage(grammar({
+        let language = generateAndLoadLanguage(grammar({
           name: "test_grammar",
           rules: {
             _expression: $ => choice($.sum, $.product, $.equation, $.variable),
@@ -217,7 +210,7 @@ describe("Writing a grammar", () => {
 
   describe("extra tokens", () => {
     it("allows the given tokens to appear anywhere in the input", () => {
-      let language = compileAndLoadLanguage(grammar({
+      let language = generateAndLoadLanguage(grammar({
         name: "test_grammar",
         extras: $ => [$.ellipsis, " "],
         rules: {
@@ -237,7 +230,7 @@ describe("Writing a grammar", () => {
     });
 
     it("allows anonymous rules to be provided", () => {
-      let language = compileAndLoadLanguage(grammar({
+      let language = generateAndLoadLanguage(grammar({
         name: "test_grammar",
         extras: $ => ["...", "---"],
         rules: {
@@ -256,7 +249,7 @@ describe("Writing a grammar", () => {
     });
 
     it("defaults to whitespace characters", () => {
-      let language = compileAndLoadLanguage(grammar({
+      let language = generateAndLoadLanguage(grammar({
         name: "test_grammar",
         rules: {
           the_rule: $ => repeat($.word),
@@ -293,7 +286,7 @@ describe("Writing a grammar", () => {
       let threw = false;
 
       try {
-        compiler.compile(grammar(grammarOptions));
+        generate(grammar(grammarOptions));
       } catch (e) {
         assert.match(e.message, /Unresolved conflict/);
         threw = true;
@@ -305,7 +298,7 @@ describe("Writing a grammar", () => {
         [$.first_rule, $.second_rule]
       ]
 
-      let language = compileAndLoadLanguage(grammar(grammarOptions))
+      let language = generateAndLoadLanguage(grammar(grammarOptions))
       document.setLanguage(language)
 
       document.setInputString("a b c d").parse()
@@ -328,7 +321,7 @@ describe("Writing a grammar", () => {
         }
       });
 
-      document.setLanguage(compileAndLoadLanguage(grammar1))
+      document.setLanguage(generateAndLoadLanguage(grammar1))
       document.setInputString("one two three").parse()
       assert.equal(document.rootNode.toString(), "(thing (triple (word) (word) (word)))");
 
@@ -343,7 +336,7 @@ describe("Writing a grammar", () => {
         }
       })
 
-      document.setLanguage(compileAndLoadLanguage(grammar2))
+      document.setLanguage(generateAndLoadLanguage(grammar2))
       document.setInputString("one two ... three").parse()
       assert.equal(document.rootNode.toString(), "(thing (triple (word) (word) (ellipsis) (word)))")
 
@@ -362,7 +355,7 @@ describe("Writing a grammar", () => {
         }
       });
 
-      document.setLanguage(compileAndLoadLanguage(grammar3));
+      document.setLanguage(generateAndLoadLanguage(grammar3));
       document.setInputString("one two ... three ... four").parse();
       assert.equal(
         document.rootNode.toString(),
@@ -376,7 +369,7 @@ describe("Writing a grammar", () => {
         let threw = false;
 
         try {
-          compiler.compile(grammar({
+          generate(grammar({
             name: "test_grammar",
             rules: {
               sentence: $ => choice($.first_rule, $.second_rule),
@@ -473,7 +466,7 @@ describe("Writing a grammar", () => {
         let threw = false;
 
         try {
-          compiler.compile(grammar({
+          generate(grammar({
             name: "test_grammar",
             extras: $ => [$.yyy],
             rules: {
@@ -495,7 +488,7 @@ describe("Writing a grammar", () => {
     describe("when a symbol references an undefined rule", () => {
       it("raises an error", () => {
         assert.throws((() =>
-          compiler.compile(grammar({
+          generate(grammar({
             name: "test_grammar",
             rules: {
               xxx: $ => sym("yyy")
@@ -507,10 +500,10 @@ describe("Writing a grammar", () => {
   });
 });
 
-function compileAndLoadLanguage (grammar) {
+function generateAndLoadLanguage (grammar) {
   var validation = schemaValidator.validate(grammar, GRAMMAR_SCHEMA);
   if (!validation.valid) {
     throw new Error(validation.errors[0]);
   }
-  return compiler.loadLanguage(compiler.compile(grammar));
+  return loadLanguage(generate(grammar));
 }

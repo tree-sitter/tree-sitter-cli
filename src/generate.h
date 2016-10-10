@@ -6,7 +6,7 @@
 
 namespace node_tree_sitter_cli {
 
-NAN_METHOD(Compile);
+NAN_METHOD(Generate);
 
 }  // namespace node_tree_sitter_cli
 

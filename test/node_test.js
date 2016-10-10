@@ -1,20 +1,15 @@
 'use strict';
 
 const assert = require("assert");
-const Document = require("tree-sitter").Document
-const compiler = require("..");
-const grammar = compiler.dsl.grammar;
-const seq = compiler.dsl.seq;
-const choice = compiler.dsl.choice;
-const prec = compiler.dsl.prec;
-const repeat = compiler.dsl.repeat;
-const token = compiler.dsl.token;
+const {Document} = require("tree-sitter")
+const {dsl, generate, loadLanguage} = require("..");
+const {grammar, seq, choice, prec, repeat, token} = dsl
 
 describe("ASTNode", () => {
   let document, language, rootNode, sumNode;
 
   before(() => {
-    language = compiler.loadLanguage(compiler.compile(grammar({
+    language = loadLanguage(generate(grammar({
       name: "arithmetic",
 
       rules: {
