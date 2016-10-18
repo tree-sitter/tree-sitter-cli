@@ -54,7 +54,7 @@ describe("ASTNode", () => {
     document = new Document()
       .setLanguage(language)
       .setInputString("x10 + 1000")
-      .parse();
+    document.parse();
     sumNode = document.rootNode.children[0];
     assert.equal("sum", sumNode.type);
   });

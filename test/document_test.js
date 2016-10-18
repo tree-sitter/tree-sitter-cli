@@ -1,8 +1,8 @@
 'use strict';
 
-const assert = require("chai").assert;
+const {assert} = require("chai");
 const {dsl, generate, loadLanguage} = require("..");
-const {choice, repeat, grammar} = dsl
+const {choice, prec, repeat, seq, grammar} = dsl
 const {Document} = require("tree-sitter")
 
 describe("Document", () => {
@@ -25,7 +25,7 @@ describe("Document", () => {
     document = new Document();
   });
 
-  describe("::setLanguage(language)", () => {
+  describe("setLanguage", () => {
     describe("when the supplied object is not a tree-sitter language", () => {
       it("throws an exception", () => {
         assert.throws((() =>
@@ -46,7 +46,7 @@ describe("Document", () => {
     });
   });
 
-  describe("::setInput(input)", () => {
+  describe("setInput", () => {
     it("reads from the given input when .parse() is called", () => {
       document.setLanguage(language)
 
@@ -153,7 +153,7 @@ describe("Document", () => {
     });
   });
 
-  describe("::edit({ position, charsAdded, charsRemoved })", () => {
+  describe("edit", () => {
     let input;
 
     beforeEach(() => {
@@ -187,8 +187,12 @@ describe("Document", () => {
         input.text = "first-word first-word second-word first-word";
 
         document.edit({
-          position: "first-word ".length,
-          charsInserted: "first-word ".length,
+          startIndex: 'first-word '.length,
+          lengthAdded: 'first-word '.length,
+          lengthRemoved: 0,
+          startPosition: {row: 0, column: 'first-word '.length},
+          extentAdded: {row: 0, column: 'first-word '.length},
+          extentRemoved: {row: 0, column: 0}
         }).parse();
 
         assert.equal(
@@ -201,8 +205,12 @@ describe("Document", () => {
       it("updates the parse tree", () => {
         input.text = "first-word first-word"
         document.edit({
-          position: "first-word ".length,
-          charsRemoved: "second-word ".length,
+          startIndex: 'first-word '.length,
+          lengthAdded: 0,
+          lengthRemoved: 'second-word '.length,
+          startPosition: {row: 0, column: 'first-word '.length},
+          extentAdded: {row: 0, column: 0},
+          extentRemoved: {row: 0, column: 'second-word '.length}
         }).parse();
 
         assert.equal(
@@ -225,8 +233,12 @@ describe("Document", () => {
         input.text = "αβδ αβ αβ";
 
         document.edit({
-          position: 2,
-          charsInserted: 1,
+          startIndex: 2,
+          lengthAdded: 1,
+          lengthRemoved: 0,
+          startPosition: {row: 0, column: 2},
+          extentAdded: {row: 0, column: 1},
+          extentRemoved: {row: 0, column: 0}
         }).parse();
 
         assert.equal(
@@ -241,7 +253,15 @@ describe("Document", () => {
       let oldRootNode = document.rootNode
       assert.equal(oldRootNode.isValid(), true)
 
-      document.edit({position: 0, charsRemoved: 1}).parse()
+      document.edit({
+        startIndex: 0,
+        lengthRemoved: 1,
+        lengthAdded: 0,
+        startPosition: {row: 0, column: 0},
+        extentRemoved: {row: 0, column: 1},
+        extentAdded: {row: 0, column: 0}
+      }).parse()
+
       assert.equal(oldRootNode.isValid(), false)
       assert.equal(oldRootNode.name, null)
       assert.equal(oldRootNode.start_index, null)
@@ -251,7 +271,59 @@ describe("Document", () => {
     });
   });
 
-  describe("::setLogger(callback)", () => {
+  describe('parse', () => {
+    it('reports the ranges of text whose syntactic meaning has changed', () => {
+      let language = loadLanguage(generate(grammar({
+        name: 'test2',
+        rules: {
+          expression: $ => choice(
+            prec.left(seq($.expression, '+', $.expression)),
+            /\w+/
+          )
+        }
+      })))
+
+      let input = {
+        content: 'abcdefg + hij',
+        index: 0,
+
+        read () {
+          let result = this.content.slice(this.index);
+          this.index = Infinity
+          return result
+        },
+
+        seek (index) {
+          this.index = index
+        },
+      }
+
+      document
+        .setLanguage(language)
+        .setInput(input)
+
+      let invalidatedRanges = document.parse()
+      assert.equal(document.rootNode.toString(), '(expression (expression) (expression))')
+      assert.deepEqual(invalidatedRanges, [])
+
+      input.content = 'abc + defg + hij'
+      document.edit({
+        startIndex: 2,
+        lengthAdded: 3,
+        lengthRemoved: 0,
+        startPosition: {row: 0, column: 2},
+        extentAdded: {row: 0, column: 3},
+        extentRemoved: {row: 0, column: 0}
+      })
+
+      invalidatedRanges = document.parse()
+      assert.deepEqual(invalidatedRanges, [
+        {start: {row: 0, column: 0}, end: {row: 0, column: 'abc + defg'.length}}
+      ])
+    })
+  })
+
+  describe("setLogger", () => {
     let debugMessages;
 
     beforeEach(() => {
