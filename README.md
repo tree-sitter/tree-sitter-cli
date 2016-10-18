@@ -54,7 +54,7 @@ module.exports = grammar({
 });
 ```
 
-Run `tree-sitter compile`. This will generate a C function for parsing your
+Run `tree-sitter generate`. This will generate a C function for parsing your
 language, a C++ function that exposes the parser to javascript, and a
 `binding.gyp` file for compiling these sources into a native node module.
 
