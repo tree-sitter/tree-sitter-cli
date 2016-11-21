@@ -378,10 +378,9 @@ describe("Writing a grammar", () => {
             }
           }));
         } catch (e) {
-          assert.match(e.message, /Unresolved conflict/);
-          assert.match(e.message, /Lookahead symbol: END_OF_INPUT/);
-          assert.match(e.message, /first_rule -> 'things' 'stuff'/);
-          assert.match(e.message, /second_rule -> 'things' 'stuff'/);
+          assert.match(e.message, /Unresolved conflict /);
+          assert.match(e.message, /first_rule/);
+          assert.match(e.message, /second_rule/);
           assert.property(e, "isGrammarError");
           threw = true;
         }
