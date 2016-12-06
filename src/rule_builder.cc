@@ -18,12 +18,7 @@ static NAN_METHOD(New) {
 NAN_PROPERTY_GETTER(GetProperty) {
   Local<Object> rules = Local<Object>::Cast(info.Data());
 
-  if (!rules->IsObject()) {
-    Nan::ThrowError("This should not happend");
-    return;
-  }
-
-  if (!rules->HasRealNamedProperty(property)) {
+  if (rules->IsObject() && !rules->HasRealNamedProperty(property)) {
     Nan::Utf8String property_name(property);
     info.GetReturnValue().Set(Nan::ReferenceError((std::string("Undefined rule '") + *property_name + "'").c_str()));
     return;
@@ -34,14 +29,14 @@ NAN_PROPERTY_GETTER(GetProperty) {
 }
 
 static NAN_METHOD(Build) {
-  if (info.Length() != 1 || !info[0]->IsObject()) {
-    Nan::ThrowTypeError("A rule hash must be supplied");
-    return;
+  Local<Value> data = Nan::Null();
+  if (info.Length() == 1 && info[0]->IsObject()) {
+    data = info[0];
   }
 
   Local<FunctionTemplate> tpl = Nan::New<FunctionTemplate>(New);
   tpl->SetClassName(Nan::New("RuleBuilder").ToLocalChecked());
-  Nan::SetNamedPropertyHandler(tpl->InstanceTemplate(), GetProperty, 0, 0, 0, 0, info[0]);
+  Nan::SetNamedPropertyHandler(tpl->InstanceTemplate(), GetProperty, 0, 0, 0, 0, data);
   info.GetReturnValue().Set(tpl->GetFunction()->NewInstance());
 }
 

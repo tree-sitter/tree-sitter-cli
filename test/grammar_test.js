@@ -1,5 +1,6 @@
 'use strict';
 
+const path = require('path')
 const jsonSchema = require('jsonschema');
 const {assert} = require("chai");
 const {dsl, generate, loadLanguage} = require("..");
@@ -268,7 +269,7 @@ describe("Writing a grammar", () => {
   });
 
   describe("expected conflicts", () => {
-    it("causes the grammar to work even with LR(1), conflicts", () => {
+    it("causes the grammar to work even with LR(1) conflicts", () => {
       let grammarOptions = {
         name: "test_grammar",
         rules: {
@@ -307,6 +308,25 @@ describe("Writing a grammar", () => {
       document.setInputString("a b c e").parse()
       assert.equal("(sentence (second_rule))", document.rootNode.toString())
     });
+  });
+
+  describe("external tokens", function () {
+    it("causes the grammar to work even with LR(1) conflicts", () => {
+      let language = generateAndLoadLanguage(
+        grammar({
+          name: "test_grammar",
+          externals: $ => [$.external_a, $.external_b],
+          rules: {
+            program: $ => seq($.external_a, $.external_b)
+          }
+        }),
+        [path.join(__dirname, 'fixtures', 'external_scan.c')]
+      );
+
+      document.setLanguage(language)
+      document.setInputString("a b").parse()
+      assert.equal(document.rootNode.toString(), "(program (external_a) (external_b))")
+    })
   });
 
   describe("extending another grammar", () => {
@@ -499,10 +519,11 @@ describe("Writing a grammar", () => {
   });
 });
 
-function generateAndLoadLanguage (grammar) {
+function generateAndLoadLanguage (grammar, ...args) {
   var validation = schemaValidator.validate(grammar, GRAMMAR_SCHEMA);
   if (!validation.valid) {
     throw new Error(validation.errors[0]);
   }
-  return loadLanguage(generate(grammar));
+
+  return loadLanguage(generate(grammar), ...args);
 }
