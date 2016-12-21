@@ -31,3 +31,13 @@ bool ts_language_test_grammar_external_scanner_scan(void *payload, TSLexer *lexe
 
   return false;
 }
+
+void ts_language_test_grammar_external_scanner_reset(void *payload) {
+}
+
+bool ts_language_test_grammar_external_scanner_serialize(void *payload, TSExternalTokenState state) {
+  return true;
+}
+
+void ts_language_test_grammar_external_scanner_deserialize(void *payload, TSExternalTokenState state) {
+}
