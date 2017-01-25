@@ -45,11 +45,11 @@ switch (argv._[0]) {
 
     if (needsHelp || !codePath)
       usage("parse <code-file>", [
-        "Parse the given file using the parser in the current working directory.",
+        "Parse the given file using the parser in the current working directory and print the sytax tree.",
         "",
         "Arguments",
         "  code-path          - The file to parse",
-        "  --print, -p        - Print the syntax tree",
+        "  --quiet, -q        - Parse, but don't print any output",
         "  --debug, -d        - Print a log of parse actions",
         "  --debug-graph, -D  - Render a sequence of diagrams showing the changing parse stack",
         "  --profile, -P      - Render a flame graph of the parse performance (requires sudo)",
@@ -60,7 +60,7 @@ switch (argv._[0]) {
       codePath: argv._[1],
       debugGraph: argv['debug-graph'] || argv.D,
       debug: argv.debug || argv.d,
-      print: argv.print || argv.p,
+      quiet: argv.quiet || argv.q,
       profile: argv.profile || argv.P,
       repeat: argv.repeat
     }, process.exit);
