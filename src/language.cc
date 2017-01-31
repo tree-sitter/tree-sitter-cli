@@ -37,7 +37,7 @@ NAN_METHOD(LoadLanguage) {
     return;
   }
 
-  Local<Object> instance = Nan::New(constructor)->NewInstance();
+  Local<Object> instance = Nan::New(constructor)->NewInstance(Nan::GetCurrentContext()).ToLocalChecked();
   Nan::SetInternalFieldPointer(instance, 0, (void *)language_fn());
   info.GetReturnValue().Set(instance);
 }
