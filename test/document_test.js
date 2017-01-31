@@ -318,7 +318,7 @@ describe("Document", () => {
 
       invalidatedRanges = document.parse()
       assert.deepEqual(invalidatedRanges, [
-        {start: {row: 0, column: 0}, end: {row: 0, column: 'abc + defg'.length}}
+        {start: {row: 0, column: 0}, end: {row: 0, column: 'abc + defg '.length}}
       ])
     })
   })

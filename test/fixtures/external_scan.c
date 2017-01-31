@@ -5,14 +5,14 @@ enum {
   EXTERNAL_B
 };
 
-void *ts_language_test_grammar_external_scanner_create() {
+void *tree_sitter_test_grammar_external_scanner_create() {
   return NULL;
 }
 
-void ts_language_test_grammar_external_scanner_destroy(void *payload) {
+void tree_sitter_test_grammar_external_scanner_destroy(void *payload) {
 }
 
-bool ts_language_test_grammar_external_scanner_scan(void *payload, TSLexer *lexer, const bool *valid_symbols) {
+bool tree_sitter_test_grammar_external_scanner_scan(void *payload, TSLexer *lexer, const bool *valid_symbols) {
   while (lexer->lookahead == ' ') {
     lexer->advance(lexer, true);
   }
@@ -32,12 +32,12 @@ bool ts_language_test_grammar_external_scanner_scan(void *payload, TSLexer *lexe
   return false;
 }
 
-void ts_language_test_grammar_external_scanner_reset(void *payload) {
+void tree_sitter_test_grammar_external_scanner_reset(void *payload) {
 }
 
-bool ts_language_test_grammar_external_scanner_serialize(void *payload, TSExternalTokenState state) {
+bool tree_sitter_test_grammar_external_scanner_serialize(void *payload, TSExternalTokenState state) {
   return true;
 }
 
-void ts_language_test_grammar_external_scanner_deserialize(void *payload, TSExternalTokenState state) {
+void tree_sitter_test_grammar_external_scanner_deserialize(void *payload, TSExternalTokenState state) {
 }
