@@ -1,13 +1,9 @@
 #!/usr/bin/env node
 
-var generateCommand = require("./lib/cli/generate"),
-    testCommand = require("./lib/cli/test"),
-    parseCommand = require("./lib/cli/parse"),
-    path = require("path"),
-    argv = require("yargs").argv;
-
-var execName = path.basename(process.argv[1]);
-var needsHelp = argv.help || argv.h;
+const path = require("path");
+const argv = require("yargs").argv;
+const execName = path.basename(process.argv[1]);
+const needsHelp = argv.help || argv.h;
 
 switch (argv._[0]) {
   case "generate":
@@ -20,7 +16,7 @@ switch (argv._[0]) {
         "  binding.gyp      - the build configuration file for the node.js binding",
       ]);
 
-    generateCommand({
+    require("./lib/cli/generate")({
       profile: argv.profile || argv.P,
     }, process.exit);
     break;
@@ -33,7 +29,7 @@ switch (argv._[0]) {
         "  --debug, -d           - Output debugging information during parsing"
       ]);
 
-    testCommand({
+    require("./lib/cli/test")({
       focus: argv.focus || argv.f,
       debug: argv.debug || argv.d,
       debugGraph: argv['debug-graph'] || argv.D
@@ -56,7 +52,7 @@ switch (argv._[0]) {
         "  --repeat <count>   - Parse the file the given number of times (useful for profiling)"
       ]);
 
-    parseCommand({
+    require("./lib/cli/parse")({
       codePath: argv._[1],
       debugGraph: argv['debug-graph'] || argv.D,
       debug: argv.debug || argv.d,
