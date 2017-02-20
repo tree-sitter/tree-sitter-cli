@@ -246,7 +246,7 @@ describe("Writing a grammar", () => {
       assert.equal(document.rootNode.toString(), "(the_rule (word) (word) (word))");
 
       document.setInputString("hello hello").parse();
-      assert.equal(document.rootNode.toString(), "(the_rule (word) (UNEXPECTED \' \') (ERROR) (word))");
+      assert.equal(document.rootNode.toString(), "(the_rule (word) (ERROR (UNEXPECTED ' ')) (word))");
     });
 
     it("defaults to whitespace characters", () => {
@@ -264,7 +264,7 @@ describe("Writing a grammar", () => {
       assert.equal(document.rootNode.toString(), "(the_rule (word) (word) (word) (word) (word))")
 
       document.setInputString("hello.hello").parse()
-      assert.equal(document.rootNode.toString(), "(the_rule (word) (UNEXPECTED \'.\') (ERROR) (word))")
+      assert.equal(document.rootNode.toString(), "(the_rule (word) (ERROR (UNEXPECTED '.')) (word))")
     });
   });
 
@@ -346,7 +346,7 @@ describe("Writing a grammar", () => {
       assert.equal(document.rootNode.toString(), "(thing (triple (word) (word) (word)))");
 
       document.setInputString("one two ... three").parse()
-      assert.equal(document.rootNode.toString(), "(thing (triple (word) (word) (UNEXPECTED \'.\') (ERROR) (word)))")
+      assert.equal(document.rootNode.toString(), "(thing (triple (word) (word) (ERROR (UNEXPECTED '.')) (word)))")
 
       let grammar2 = grammar(grammar1, {
         name: "grammar2",
