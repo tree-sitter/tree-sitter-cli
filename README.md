@@ -45,9 +45,9 @@ module.exports = grammar({
       prec(3, seq($.expression, "^", $.expression))
     ),
 
-    variable: $ => (/\a\w+/)
+    variable: $ => (/\a\w+/),
 
-    number: $ => (/\d+/)
+    number: $ => (/\d+/),
 
     comment: $ => (/#.*/)
   }
