@@ -38,11 +38,11 @@ module.exports = grammar({
     expression: $ => choice(
       $.variable,
       $.number,
-      prec(1, seq($.expression, "+", $.expression)),
-      prec(1, seq($.expression, "-", $.expression)),
-      prec(2, seq($.expression, "*", $.expression)),
-      prec(2, seq($.expression, "/", $.expression)),
-      prec(3, seq($.expression, "^", $.expression))
+      prec.left(1, seq($.expression, "+", $.expression)),
+      prec.left(1, seq($.expression, "-", $.expression)),
+      prec.left(2, seq($.expression, "*", $.expression)),
+      prec.left(2, seq($.expression, "/", $.expression)),
+      prec.left(3, seq($.expression, "^", $.expression))
     ),
 
     variable: $ => (/\a\w+/),
