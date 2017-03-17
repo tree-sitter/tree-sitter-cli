@@ -495,7 +495,7 @@ describe("Writing a grammar", () => {
             }
           }))
         } catch (e) {
-          assert.match(e.message, /Not a token.*yyy/)
+          assert.match(e.message, /Non-token symbol yyy/)
           assert.property(e, "isGrammarError")
           threw = true
         }
