@@ -9,4 +9,3 @@ tree_sitter
 *.xcodeproj
 node_modules
 .vagrant
-/node-tree-sitter
