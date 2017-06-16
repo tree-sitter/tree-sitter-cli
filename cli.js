@@ -2,7 +2,6 @@
 
 const path = require("path");
 const argv = require("yargs").argv;
-const execName = path.basename(process.argv[1]);
 const needsHelp = argv.help || argv.h;
 
 switch (argv._[0]) {
@@ -10,6 +9,7 @@ switch (argv._[0]) {
     if (needsHelp)
       usage("generate", [
         "Read a `grammar.js` file in the current working directory, and create/update the following files:",
+        "",
         "  src/grammar.json - the grammar in JSON format",
         "  src/parser.c     - the parser",
         "  src/binding.cc   - the C++ node.js binding for the parser",
@@ -24,7 +24,9 @@ switch (argv._[0]) {
   case "test":
     if (needsHelp)
       usage("test", [
-        "Flags",
+        "Run the tests for the parser in the current working directory.",
+        "",
+        "Arguments",
         "  --focus, -f <string>  - Only run tests whose name contain the given string",
         "  --debug, -d           - Output debugging information during parsing"
       ]);
@@ -37,11 +39,11 @@ switch (argv._[0]) {
     break;
 
   case "parse":
-    var codePath = argv._[1];
+    const codePath = argv._[1];
 
     if (needsHelp || !codePath)
       usage("parse <code-file>", [
-        "Parse the given file using the parser in the current working directory and print the sytax tree.",
+        "Parse the given file using the parser in the current working directory and print the syntax tree.",
         "",
         "Arguments",
         "  code-path          - The file to parse",
@@ -53,7 +55,7 @@ switch (argv._[0]) {
       ]);
 
     require("./lib/cli/parse")({
-      codePath: argv._[1],
+      codePath: codePath,
       debugGraph: argv['debug-graph'] || argv.D,
       debug: argv.debug || argv.d,
       quiet: argv.quiet || argv.q,
@@ -63,12 +65,14 @@ switch (argv._[0]) {
     break;
 
   default:
-    usage("<generate|test|parse> [flags]")
+    usage("<generate|test|parse> [flags]", [
+      "Run `tree-sitter <command> --help` for more information about a particular command."
+    ])
     break;
 }
 
 function usage(command, lines) {
-  console.log("Usage: " + execName + " " + command + "\n");
+  console.log("Usage: tree-sitter " + command + "\n");
   if (lines)
     console.log(lines.join('\n') + '\n')
   process.exit(0);
