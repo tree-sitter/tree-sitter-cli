@@ -81,8 +81,7 @@ describe("ASTNode", () => {
 
   describe("::startIndex and ::endIndex", () => {
     it("returns the character index where the node starts/ends in the text", () => {
-      var inputString = "a👍👎1 / b👎c👎";
-      document.setInputString(inputString).parse()
+      document.setInputString("a👍👎1 / b👎c👎").parse()
       sumNode = document.rootNode.children[0];
 
       assert.equal(0, sumNode.startIndex)
@@ -106,6 +105,16 @@ describe("ASTNode", () => {
         {row: 0, column: 5},
         {row: 0, column: 10}
       ], sumNode.children.map(child => child.endPosition))
+    });
+
+    it("handles characters that occupy two UTF16 code units", () => {
+      document.setInputString("a👍👎1 /\n b👎c👎").parse()
+      sumNode = document.rootNode.children[0];
+      assert.deepEqual([
+        [{row: 0, column: 0}, {row: 0, column: 6}],
+        [{row: 0, column: 7}, {row: 0, column: 8}],
+        [{row: 1, column: 1}, {row: 1, column: 7}],
+      ], sumNode.children.map(child => [child.startPosition, child.endPosition]))
     });
   });
 
