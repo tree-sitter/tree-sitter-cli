@@ -39,15 +39,15 @@ switch (argv._[0]) {
     break;
 
   case "parse":
-    const codePath = argv._[1];
-
-    if (needsHelp || !codePath)
+    const codePaths = argv._.slice(1);
+    if (needsHelp || codePaths.length === 0)
       usage("parse <code-file>", [
         "Parse the given file using the parser in the current working directory and print the syntax tree.",
         "",
         "Arguments",
         "  code-path          - The file to parse",
         "  --quiet, -q        - Parse, but don't print any output",
+        "  --time, -t         - Print the time it took to parse",
         "  --debug, -d        - Print a log of parse actions",
         "  --debug-graph, -D  - Render a sequence of diagrams showing the changing parse stack",
         "  --profile, -P      - Render a flame graph of the parse performance (requires sudo)",
@@ -55,10 +55,11 @@ switch (argv._[0]) {
       ]);
 
     require("./lib/cli/parse")({
-      codePath: codePath,
+      codePaths: codePaths,
       debugGraph: argv['debug-graph'] || argv.D,
       debug: argv.debug || argv.d,
       quiet: argv.quiet || argv.q,
+      time: argv.time || argv.t,
       profile: argv.profile || argv.P,
       repeat: argv.repeat
     }, process.exit);
