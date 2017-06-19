@@ -20,7 +20,6 @@
   },
   "version": "0.5.2",
   "dependencies": {
-    "coffee-script": "1.7.x",
     "ejs": "1.0.0",
     "fs-extra": "^0.30.0",
     "mkdirp": "^0.5.1",
