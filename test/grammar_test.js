@@ -308,6 +308,49 @@ describe("Writing a grammar", () => {
       document.setInputString("a b c e").parse()
       assert.equal("(sentence (second_rule))", document.rootNode.toString())
     });
+
+    it("allows ambiguities to be resolved via dynamic precedence", () => {
+      let callPrecedence = -1;
+
+      const grammarOptions = {
+        name: "test_grammar",
+        conflicts: $ => [
+          [$.expression, $.command],
+          [$.call, $.command]
+        ],
+        rules: {
+          expression: $ => choice(
+            $.call,
+            $.command,
+            $.parenthesized,
+            $.identifier
+          ),
+
+          call: $ => prec.dynamic(callPrecedence, seq(
+            $.expression,
+            '(',
+            $.expression,
+            repeat(seq(',', $.expression)),
+            ')'
+          )),
+
+          command: $ => seq($.identifier, $.expression),
+
+          parenthesized: $ => seq('(', $.expression, ')'),
+
+          identifier: $ => /\a+/
+        }
+      };
+
+      document.setLanguage(generateAndLoadLanguage(grammar(grammarOptions)))
+      document.setInputString("a(b)").parse()
+      assert.equal(document.rootNode.toString(), "(expression (command (identifier) (expression (parenthesized (expression (identifier))))))")
+
+      callPrecedence = 1
+      document.setLanguage(generateAndLoadLanguage(grammar(grammarOptions)))
+      document.setInputString("a(b)").parse()
+      assert.equal(document.rootNode.toString(), "(expression (call (expression (identifier)) (expression (identifier))))")
+    });
   });
 
   describe("external tokens", function () {
