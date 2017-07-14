@@ -1,16 +1,14 @@
-'use strict';
-
 const path = require('path')
 const jsonSchema = require('jsonschema');
 const {assert} = require("chai");
 const {dsl, generate, loadLanguage} = require("..");
-const {blank, choice, prec, repeat, seq, sym, grammar} = dsl
+const {blank, choice, prec, repeat, rename, seq, sym, grammar} = dsl
 const {Document} = require("tree-sitter")
 const GRAMMAR_SCHEMA = require("../vendor/tree-sitter/doc/grammar-schema")
 const schemaValidator = new jsonSchema.Validator();
 
 describe("Writing a grammar", () => {
-  let document
+  let document;
 
   beforeEach(() => {
     document = new Document()
@@ -206,6 +204,45 @@ describe("Writing a grammar", () => {
         document.setInputString("a = b = c").parse()
         assert.equal(document.rootNode.toString(), "(equation (variable) (equation (variable) (variable)))")
       });
+    });
+
+    describe("rename", () => {
+      it("assigns syntax nodes matched by the given rule an alternative name", () => {
+        let language = generateAndLoadLanguage(grammar({
+          name: "test_grammar",
+          rules: {
+            rule_1: $ => seq(rename($.rule_2, 'special_rule'), "-", $.rule_3),
+            rule_2: $ => "one",
+            rule_3: $ => "two",
+          }
+        }))
+
+        document.setLanguage(language)
+
+        document.setInputString("one-two").parse()
+        assert.equal(document.rootNode.toString(), "(rule_1 (special_rule) (rule_3))")
+      })
+    })
+  });
+
+  describe("inlining rules", () => {
+    it("duplicates the content of the specified rules at all of their usage sites", () => {
+      const language = generateAndLoadLanguage(grammar({
+        name: "test_grammar",
+        inline: $ => [$.rule_c],
+        rules: {
+          rule_a: $ => seq($.rule_b, $.rule_c),
+          rule_b: $ => 'b',
+          rule_c: $ => seq($.rule_d, $.rule_e),
+          rule_d: $ => 'd',
+          rule_e: $ => 'e',
+        }
+      }));
+
+      document.setLanguage(language)
+
+      document.setInputString("b d e").parse()
+      assert.equal(document.rootNode.toString(), "(rule_a (rule_b) (rule_d) (rule_e))")
     });
   });
 
@@ -564,9 +601,7 @@ describe("Writing a grammar", () => {
 
 function generateAndLoadLanguage (grammar, ...args) {
   var validation = schemaValidator.validate(grammar, GRAMMAR_SCHEMA);
-  if (!validation.valid) {
-    throw new Error(validation.errors[0]);
-  }
-
-  return loadLanguage(generate(grammar), ...args);
+  if (!validation.valid) throw new Error(validation.errors[0]);
+  const parserCode = generate(grammar)
+  return loadLanguage(parserCode, ...args);
 }
