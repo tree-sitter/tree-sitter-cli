@@ -35,9 +35,12 @@ bool tree_sitter_test_grammar_external_scanner_scan(void *payload, TSLexer *lexe
 void tree_sitter_test_grammar_external_scanner_reset(void *payload) {
 }
 
-bool tree_sitter_test_grammar_external_scanner_serialize(void *payload, TSExternalTokenState state) {
-  return true;
-}
+unsigned tree_sitter_test_grammar_external_scanner_serialize(
+  void *payload,
+  char *buffer
+) { return 0; }
 
-void tree_sitter_test_grammar_external_scanner_deserialize(void *payload, TSExternalTokenState state) {
-}
+void tree_sitter_test_grammar_external_scanner_deserialize(
+  void *payload,
+  const char *buffer,
+  unsigned length) {}
