@@ -26,7 +26,7 @@
     "nan": "^2.0.0",
     "stackvis": "^0.3.0",
     "temp": "0.8.x",
-    "tree-sitter": "^0.6.0",
+    "tree-sitter": "^0.6.1",
     "vows": "0.7.x",
     "yargs": "4.8.x"
   },
