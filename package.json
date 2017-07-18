@@ -18,7 +18,7 @@
   "bin": {
     "tree-sitter": "cli.js"
   },
-  "version": "0.6.1",
+  "version": "0.6.2",
   "dependencies": {
     "ejs": "1.0.0",
     "fs-extra": "^0.30.0",
