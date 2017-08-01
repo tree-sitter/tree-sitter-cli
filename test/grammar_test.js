@@ -2,7 +2,7 @@ const path = require('path')
 const jsonSchema = require('jsonschema');
 const {assert} = require("chai");
 const {dsl, generate, loadLanguage} = require("..");
-const {blank, choice, prec, repeat, rename, seq, sym, grammar} = dsl
+const {alias, blank, choice, prec, repeat, seq, sym, grammar} = dsl
 const {Document} = require("tree-sitter")
 const GRAMMAR_SCHEMA = require("../vendor/tree-sitter/doc/grammar-schema")
 const schemaValidator = new jsonSchema.Validator();
@@ -206,21 +206,29 @@ describe("Writing a grammar", () => {
       });
     });
 
-    describe("rename", () => {
+    describe("alias", () => {
       it("assigns syntax nodes matched by the given rule an alternative name", () => {
-        let language = generateAndLoadLanguage(grammar({
+        const language = generateAndLoadLanguage(grammar({
           name: "test_grammar",
           rules: {
-            rule_1: $ => seq(rename($.rule_2, 'special_rule'), "-", $.rule_3),
-            rule_2: $ => "one",
-            rule_3: $ => "two",
+            rule_1: $ => seq(alias($.rule_2, $.rule_2000), "\n", $.rule_3),
+            rule_2: $ => "#two",
+            rule_3: $ => alias(/#[ \t]*three/, "#three"),
           }
         }))
 
         document.setLanguage(language)
+        document.setInputString("#two\n#  three").parse()
+        assert.equal(document.rootNode.toString(), "(rule_1 (rule_2000) (rule_3))")
 
-        document.setInputString("one-two").parse()
-        assert.equal(document.rootNode.toString(), "(rule_1 (special_rule) (rule_3))")
+        const rule2Node = document.rootNode.namedChildren[0]
+        assert.equal(rule2Node.namedChildren.length, 0)
+        assert.equal(rule2Node.children.length, 0)
+
+        const rule3Node = document.rootNode.namedChildren[1]
+        assert.equal(rule3Node.namedChildren.length, 0)
+        assert.deepEqual(rule3Node.children.map(node => node.type), ['#three'])
+        assert.deepEqual(rule3Node.children.map(node => node.isNamed), [false])
       })
     })
   });
