@@ -9,44 +9,46 @@ namespace rule_builder {
 using namespace v8;
 
 Nan::Persistent<v8::Function> constructor;
-Nan::Persistent<v8::Function> symbol_fn;
 
-static NAN_METHOD(New) {
-  info.GetReturnValue().Set(info.This());
+Local<Object> build_symbol(Local<String> name) {
+  auto result = Nan::New<Object>();
+  result->Set(Nan::New("type").ToLocalChecked(), Nan::New("SYMBOL").ToLocalChecked());
+  result->Set(Nan::New("name").ToLocalChecked(), name);
+  return result;
 }
 
 NAN_PROPERTY_GETTER(GetProperty) {
-  Local<Object> rules = Local<Object>::Cast(info.Data());
+  Local<Object> rules = Local<Object>::Cast(info.This()->GetInternalField(0));
+  Local<Object> symbol = build_symbol(property);
 
   if (rules->IsObject() && !rules->HasRealNamedProperty(property)) {
     Nan::Utf8String property_name(property);
-    info.GetReturnValue().Set(Nan::ReferenceError((std::string("Undefined rule '") + *property_name + "'").c_str()));
-    return;
+    std::string error_message = std::string("Undefined rule '") + *property_name + "'";
+    Local<Object> error;
+    if (Nan::To<Object>(Nan::ReferenceError(error_message.c_str())).ToLocal(&error)) {
+      error->Set(Nan::New("symbol").ToLocalChecked(), symbol);
+      info.GetReturnValue().Set(error);
+    }
+  } else {
+    info.GetReturnValue().Set(symbol);
   }
-
-  Handle<Value> argv[1] = { property };
-  info.GetReturnValue().Set(Nan::New(symbol_fn)->Call(info.This(), 1, argv));
 }
 
-static NAN_METHOD(Build) {
+static NAN_METHOD(construct) {
   Local<Value> data = Nan::Null();
   if (info.Length() == 1 && info[0]->IsObject()) {
     data = info[0];
   }
-
-  Local<FunctionTemplate> tpl = Nan::New<FunctionTemplate>(New);
-  tpl->SetClassName(Nan::New("RuleBuilder").ToLocalChecked());
-  Nan::SetNamedPropertyHandler(tpl->InstanceTemplate(), GetProperty, 0, 0, 0, 0, data);
-  info.GetReturnValue().Set(tpl->GetFunction()->NewInstance());
-}
-
-static NAN_METHOD(Setup) {
-  symbol_fn.Reset(Local<Function>::Cast(info[0]));
-  info.GetReturnValue().Set(Nan::New<FunctionTemplate>(Build)->GetFunction());
+  info.This()->SetInternalField(0, data);
 }
 
 void Init(Handle<Object> exports) {
-  exports->Set(Nan::New("setupRuleBuilder").ToLocalChecked(), Nan::New<FunctionTemplate>(Setup)->GetFunction());
+  Local<FunctionTemplate> tpl = Nan::New<FunctionTemplate>(construct);
+  tpl->SetClassName(Nan::New("RuleBuilder").ToLocalChecked());
+  Nan::SetNamedPropertyHandler(tpl->InstanceTemplate(), GetProperty);
+  tpl->InstanceTemplate()->SetInternalFieldCount(1);
+  constructor.Reset(tpl->GetFunction());
+  exports->Set(Nan::New("RuleBuilder").ToLocalChecked(), Nan::New(constructor));
 }
 
 }  // namespace rule_builder
