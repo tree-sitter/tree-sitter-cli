@@ -469,6 +469,47 @@ describe("Writing a grammar", () => {
         document.rootNode.toString(),
         "(thing (double (word) (word)) (ellipsis) (double (word) (ellipsis) (word)))");
     });
+
+    it("allows inlines to be added", () => {
+      const grammar1 = grammar({
+        name: 'grammar1',
+
+        inline: $ => [
+          $.something,
+        ],
+
+        rules: {
+          statement: $ => seq($.something, ';'),
+          something: $ => $.expression,
+          expression: $ => choice($.property, $.call, $.identifier),
+          property: $ => seq($.expression, '.', $.identifier),
+          call: $ => seq($.expression, '(', $.expression, ')'),
+          identifier: $ => /\a+/,
+        }
+      });
+
+      document.setLanguage(generateAndLoadLanguage(grammar1))
+      document.setInputString("a.b(c);").parse()
+      assert.equal(
+        document.rootNode.toString(),
+        "(statement (expression (call (expression (property (expression (identifier)) (identifier))) (expression (identifier)))))"
+      );
+
+      const grammar2 = grammar(grammar1, {
+        name: 'grammar2',
+
+        inline: ($, original) => original.concat([
+          $.expression,
+        ])
+      });
+
+      document.setLanguage(generateAndLoadLanguage(grammar2))
+      document.setInputString("a.b(c);").parse()
+      assert.equal(
+        document.rootNode.toString(),
+        "(statement (call (property (identifier) (identifier)) (identifier)))"
+      );
+    });
   });
 
   describe("error handling", () => {
