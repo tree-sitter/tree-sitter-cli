@@ -178,6 +178,7 @@ describe("Writing a grammar", () => {
         let language = generateAndLoadLanguage(grammar({
           name: "test_grammar",
           rules: {
+            expression: $ => $._expression,
             _expression: $ => choice($.sum, $.product, $.equation, $.variable),
             product: $ => prec.left(2, seq($._expression, "*", $._expression)),
             sum: $ => prec.left(1, seq($._expression, "+", $._expression)),
@@ -190,19 +191,19 @@ describe("Writing a grammar", () => {
 
         // product has higher precedence than sum
         document.setInputString("a + b * c").parse()
-        assert.equal(document.rootNode.toString(), "(sum (variable) (product (variable) (variable)))")
+        assert.equal(document.rootNode.toString(), "(expression (sum (variable) (product (variable) (variable))))")
         document.setInputString("a * b + c").parse()
-        assert.equal(document.rootNode.toString(), "(sum (product (variable) (variable)) (variable))")
+        assert.equal(document.rootNode.toString(), "(expression (sum (product (variable) (variable)) (variable)))")
 
         // product and sum are left-associative
         document.setInputString("a * b * c").parse()
-        assert.equal(document.rootNode.toString(), "(product (product (variable) (variable)) (variable))")
+        assert.equal(document.rootNode.toString(), "(expression (product (product (variable) (variable)) (variable)))")
         document.setInputString("a + b + c").parse()
-        assert.equal(document.rootNode.toString(), "(sum (sum (variable) (variable)) (variable))")
+        assert.equal(document.rootNode.toString(), "(expression (sum (sum (variable) (variable)) (variable)))")
 
         // equation is right-associative
         document.setInputString("a = b = c").parse()
-        assert.equal(document.rootNode.toString(), "(equation (variable) (equation (variable) (variable)))")
+        assert.equal(document.rootNode.toString(), "(expression (equation (variable) (equation (variable) (variable))))")
       });
     });
 

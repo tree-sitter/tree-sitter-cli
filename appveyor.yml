@@ -1,0 +1,21 @@
+environment:
+  nodejs_version: "6"
+
+platform:
+  - x64
+  - x86
+
+install:
+  - call "C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\vcvarsall.bat" x86
+  - ps: Install-Product node $env:nodejs_version
+  - git submodule update --init --recursive
+  - npm install
+
+test_script:
+  - npm test
+
+build: off
+
+branches:
+  only:
+  - master
