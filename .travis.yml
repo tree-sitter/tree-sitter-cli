@@ -1,12 +1,15 @@
 sudo: false
 language: node_js
-before_install:
-  - git submodule update --init --recursive
+compiler: clang-3.6
 node_js:
   - "node"
-compiler: clang-3.6
+
+before_install:
+  - git submodule update --init --recursive
+
 env:
   - CXX=clang-3.6
+
 addons:
   apt:
     sources:
@@ -14,3 +17,7 @@ addons:
       - ubuntu-toolchain-r-test
     packages:
       - clang-3.6
+
+branches:
+  only:
+  - master
