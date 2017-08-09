@@ -272,7 +272,7 @@ describe("Document", () => {
   });
 
   describe('parse', () => {
-    it.only('reports the ranges of text whose syntactic meaning has changed', () => {
+    it('reports the ranges of text whose syntactic meaning has changed', () => {
       let language = loadLanguage(generate(grammar({
         name: 'test2',
         rules: {
