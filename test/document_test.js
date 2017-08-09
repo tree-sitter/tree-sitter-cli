@@ -272,14 +272,16 @@ describe("Document", () => {
   });
 
   describe('parse', () => {
-    it('reports the ranges of text whose syntactic meaning has changed', () => {
+    it.only('reports the ranges of text whose syntactic meaning has changed', () => {
       let language = loadLanguage(generate(grammar({
         name: 'test2',
         rules: {
           expression: $ => choice(
             prec.left(seq($.expression, '+', $.expression)),
-            /\w+/
-          )
+            $.variable
+          ),
+
+          variable: $ => /\w+/,
         }
       })))
 
@@ -303,7 +305,10 @@ describe("Document", () => {
         .setInput(input)
 
       let invalidatedRanges = document.parse()
-      assert.equal(document.rootNode.toString(), '(expression (expression) (expression))')
+      assert.equal(
+        document.rootNode.toString(),
+        '(expression (expression (variable)) (expression (variable)))'
+      )
       assert.deepEqual(invalidatedRanges, [])
 
       input.content = 'abc + defg + hij'
@@ -317,8 +322,15 @@ describe("Document", () => {
       })
 
       invalidatedRanges = document.parse()
+      assert.equal(
+        document.rootNode.toString(),
+        '(expression (expression (expression (variable)) (expression (variable))) (expression (variable)))'
+      )
       assert.deepEqual(invalidatedRanges, [
-        {start: {row: 0, column: 0}, end: {row: 0, column: 'abc + defg '.length}}
+        {
+          start: {row: 0, column: 0},
+          end: {row: 0, column: 'abc + defg'.length}
+        }
       ])
     })
   })
