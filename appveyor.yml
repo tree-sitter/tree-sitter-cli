@@ -6,6 +6,7 @@ platform:
   - x86
 
 install:
+  - call "C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\vcvarsall.bat" x86
   - ps: Install-Product node $env:nodejs_version
   - git submodule update --init --recursive
   - npm install
