@@ -30,7 +30,7 @@ describe("Writing a grammar", () => {
         assert.equal(document.rootNode.toString(), "(the_rule)")
 
         document.setInputString("not-blank").parse()
-        assert.equal(document.rootNode.toString(), "(ERROR (UNEXPECTED 'n'))")
+        assert.equal(document.rootNode.toString(), "(the_rule (ERROR (UNEXPECTED 'n')))")
       });
     });
 
@@ -132,7 +132,7 @@ describe("Writing a grammar", () => {
         assert.equal(document.rootNode.toString(), "(ERROR)")
 
         document.setInputString("1234").parse()
-        assert.equal(document.rootNode.toString(), "(ERROR (the_rule) (UNEXPECTED '4'))")
+        assert.equal(document.rootNode.toString(), "(the_rule (ERROR (UNEXPECTED '4')))")
       });
     });
 
