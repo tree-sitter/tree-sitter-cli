@@ -1,5 +1,3 @@
-'use strict';
-
 const assert = require("assert");
 const {Document} = require("tree-sitter")
 const {dsl, generate, loadLanguage} = require("..");
@@ -59,7 +57,7 @@ describe("ASTNode", () => {
     assert.equal("sum", sumNode.type);
   });
 
-  describe("::children", () => {
+  describe(".children", () => {
     it("returns an array of child nodes", () => {
       assert.equal(1, document.rootNode.children.length)
       assert.deepEqual(
@@ -69,7 +67,7 @@ describe("ASTNode", () => {
     });
   });
 
-  describe("::namedChildren", () => {
+  describe(".namedChildren", () => {
     it("returns an array of named child nodes", () => {
       assert.equal(1, document.rootNode.namedChildren.length)
       assert.deepEqual(
@@ -79,7 +77,7 @@ describe("ASTNode", () => {
     });
   });
 
-  describe("::startIndex and ::endIndex", () => {
+  describe(".startIndex and .endIndex", () => {
     it("returns the character index where the node starts/ends in the text", () => {
       document.setInputString("a👍👎1 / b👎c👎").parse()
       sumNode = document.rootNode.children[0];
@@ -91,7 +89,7 @@ describe("ASTNode", () => {
     });
   });
 
-  describe("::startPosition and ::endPosition", () => {
+  describe(".startPosition and .endPosition", () => {
     it("returns the row and column where the node starts/ends in the text", () => {
       assert.deepEqual({row: 0, column: 0}, sumNode.startPosition)
       assert.deepEqual({row: 0, column: 10}, sumNode.endPosition)
@@ -118,7 +116,7 @@ describe("ASTNode", () => {
     });
   });
 
-  describe("::parent", () => {
+  describe(".parent", () => {
     it("returns the node's parent", () => {
       let variableNode = sumNode.children[0]
       assert.deepEqual(sumNode, variableNode.parent)
@@ -126,7 +124,7 @@ describe("ASTNode", () => {
     });
   });
 
-  describe("::nextSibling and ::previousSibling", () => {
+  describe(".nextSibling and .previousSibling", () => {
     it("returns the node's next and previous sibling", () => {
       assert.deepEqual(sumNode.children[1], sumNode.children[0].nextSibling)
       assert.deepEqual(sumNode.children[2], sumNode.children[1].nextSibling)
@@ -135,14 +133,14 @@ describe("ASTNode", () => {
     });
   });
 
-  describe("::nextNamedSibling and ::previousNamedSibling", () => {
+  describe(".nextNamedSibling and .previousNamedSibling", () => {
     it("returns the node's next and previous named sibling", () => {
       assert.deepEqual(sumNode.namedChildren[1], sumNode.namedChildren[0].nextNamedSibling)
       assert.deepEqual(sumNode.namedChildren[0], sumNode.namedChildren[1].previousNamedSibling)
     });
   });
 
-  describe("::descendantForIndex(min, max)", () => {
+  describe(".descendantForIndex(min, max)", () => {
     it("returns the smallest node that spans the given range", () => {
       assert.equal('variable', sumNode.descendantForIndex(1, 2).type)
       assert.equal('+', sumNode.descendantForIndex(4, 4).type)
@@ -157,14 +155,14 @@ describe("ASTNode", () => {
     });
   });
 
-  describe("::namedDescendantForIndex", function () {
+  describe(".namedDescendantForIndex", function () {
     it("returns the smallest node that spans the given range", function () {
       assert.equal('variable', sumNode.descendantForIndex(1, 2).type)
       assert.equal('+', sumNode.descendantForIndex(4, 4).type)
     });
   });
 
-  describe("::descendantForPosition(min, max)", () => {
+  describe(".descendantForPosition(min, max)", () => {
     it("returns the smallest node that spans the given range", () => {
       assert.equal(
         'variable',
@@ -191,7 +189,7 @@ describe("ASTNode", () => {
     });
   });
 
-  describe("::namedDescendantForPosition(min, max)", () => {
+  describe(".namedDescendantForPosition(min, max)", () => {
     it("returns the smalleset named node that spans the given range", () => {
       assert.equal(
         'variable',

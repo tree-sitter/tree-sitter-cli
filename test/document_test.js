@@ -1,5 +1,3 @@
-'use strict';
-
 const {assert} = require("chai");
 const {dsl, generate, loadLanguage} = require("..");
 const {choice, prec, repeat, seq, grammar} = dsl
@@ -25,7 +23,7 @@ describe("Document", () => {
     document = new Document();
   });
 
-  describe("setLanguage", () => {
+  describe(".setLanguage", () => {
     describe("when the supplied object is not a tree-sitter language", () => {
       it("throws an exception", () => {
         assert.throws((() =>
@@ -46,7 +44,7 @@ describe("Document", () => {
     });
   });
 
-  describe("setInput", () => {
+  describe(".setInput", () => {
     it("reads from the given input when .parse() is called", () => {
       document.setLanguage(language)
 
@@ -153,7 +151,7 @@ describe("Document", () => {
     });
   });
 
-  describe("edit", () => {
+  describe(".edit", () => {
     let input;
 
     beforeEach(() => {
@@ -271,7 +269,7 @@ describe("Document", () => {
     });
   });
 
-  describe('parse', () => {
+  describe('.parse', () => {
     it('reports the ranges of text whose syntactic meaning has changed', () => {
       let language = loadLanguage(generate(grammar({
         name: 'test2',
@@ -335,7 +333,7 @@ describe("Document", () => {
     })
   })
 
-  describe("setLogger", () => {
+  describe(".setLogger", () => {
     let debugMessages;
 
     beforeEach(() => {
