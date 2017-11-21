@@ -2,7 +2,7 @@ sudo: false
 language: node_js
 compiler: clang-3.6
 node_js:
-  - "node"
+  - "8"
 
 before_install:
   - git submodule update --init --recursive

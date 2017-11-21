@@ -207,4 +207,10 @@ describe("ASTNode", () => {
       )
     });
   });
+
+  describe('.descendants(nodeTypes, options)', () => {
+    it('returns an array of all descendants ', () => {
+
+    });
+  });
 });
