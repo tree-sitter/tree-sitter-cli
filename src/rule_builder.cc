@@ -17,7 +17,7 @@ Local<Object> build_symbol(Local<String> name) {
   return result;
 }
 
-NAN_PROPERTY_GETTER(GetProperty) {
+static void GetProperty(Local<String> property, const Nan::PropertyCallbackInfo<v8::Value> &info) {
   Local<Object> rules = Local<Object>::Cast(info.This()->GetInternalField(0));
   Local<Object> symbol = build_symbol(property);
 
@@ -34,7 +34,7 @@ NAN_PROPERTY_GETTER(GetProperty) {
   }
 }
 
-static NAN_METHOD(construct) {
+static void construct(const Nan::FunctionCallbackInfo<Value> &info) {
   Local<Value> data = Nan::Null();
   if (info.Length() == 1 && info[0]->IsObject()) {
     data = info[0];

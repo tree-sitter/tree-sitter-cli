@@ -6,8 +6,7 @@
 
 namespace node_tree_sitter_cli {
 
-NAN_METHOD(LoadLanguage);
-
+void LoadLanguage(const Nan::FunctionCallbackInfo<v8::Value> &);
 void InitLanguage(v8::Handle<v8::Object> exports);
 
 }  // namespace node_tree_sitter_cli

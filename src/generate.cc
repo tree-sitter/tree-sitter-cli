@@ -5,7 +5,7 @@ namespace node_tree_sitter_cli {
 
 using namespace v8;
 
-NAN_METHOD(Generate) {
+void Generate(const Nan::FunctionCallbackInfo<Value> &info) {
   String::Utf8Value grammar_json(info[0]);
   TSCompileResult result = ts_compile_grammar(*grammar_json);
 

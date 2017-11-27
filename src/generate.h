@@ -6,7 +6,7 @@
 
 namespace node_tree_sitter_cli {
 
-NAN_METHOD(Generate);
+void Generate(const Nan::FunctionCallbackInfo<v8::Value> &);
 
 }  // namespace node_tree_sitter_cli
 

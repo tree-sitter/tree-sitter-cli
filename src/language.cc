@@ -10,7 +10,7 @@ namespace node_tree_sitter_cli {
 
 static Nan::Persistent<Function> constructor;
 
-NAN_METHOD(LoadLanguage) {
+void LoadLanguage(const Nan::FunctionCallbackInfo<Value> &info) {
   Handle<String> js_lib_file_name = Handle<String>::Cast(info[0]);
   Handle<String> js_language_function_name = Handle<String>::Cast(info[1]);
   std::string language_function_name(*String::Utf8Value(js_language_function_name));
