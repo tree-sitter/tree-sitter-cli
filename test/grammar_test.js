@@ -183,7 +183,7 @@ describe("Writing a grammar", () => {
             product: $ => prec.left(2, seq($._expression, "*", $._expression)),
             sum: $ => prec.left(1, seq($._expression, "+", $._expression)),
             equation: $ => prec.right(0, seq($._expression, "=", $._expression)),
-            variable: $ => (/\a+/),
+            variable: $ => /[a-z]+/,
           }
         }))
 
@@ -384,7 +384,7 @@ describe("Writing a grammar", () => {
 
           parenthesized: $ => seq('(', $.expression, ')'),
 
-          identifier: $ => /\a+/
+          identifier: $ => /[a-z]+/
         }
       };
 
@@ -485,7 +485,7 @@ describe("Writing a grammar", () => {
           expression: $ => choice($.property, $.call, $.identifier),
           property: $ => seq($.expression, '.', $.identifier),
           call: $ => seq($.expression, '(', $.expression, ')'),
-          identifier: $ => /\a+/,
+          identifier: $ => /[a-z]+/,
         }
       });
 

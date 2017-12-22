@@ -41,7 +41,7 @@ describe("ASTNode", () => {
         number: $ => (/\d+/),
 
         variable: $ => token(seq(
-          /\a/,
+          /[a-z]/,
           repeat(choice(/\w/, "👍", "👎"))
         )),
       }
