@@ -22,9 +22,9 @@
   "dependencies": {
     "ejs": "1.0.0",
     "fs-extra": "^0.30.0",
+    "@maxbrunsfeld/flame-graph": "*",
     "mkdirp": "^0.5.1",
     "nan": "^2.0.0",
-    "stackvis": "^0.3.0",
     "temp": "0.8.x",
     "tree-sitter": "^0.8.0",
     "vows": "0.7.x",
