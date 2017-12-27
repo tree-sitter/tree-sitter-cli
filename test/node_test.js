@@ -208,9 +208,18 @@ describe("ASTNode", () => {
     });
   });
 
-  describe('.descendants(nodeTypes, options)', () => {
-    it('returns an array of all descendants ', () => {
+  describe('.hasError()', () => {
+    it('returns true if the node contains an error', () => {
+      document.setInputString('1 + 2 * * 3')
+      document.parse()
+      const node = document.rootNode
+      assert.equal(node.toString(), '(program (sum (number) (product (number) (ERROR) (number))))')
 
+      const sum = node.firstChild
+      assert(sum.hasError())
+      assert(!sum.children[0].hasError())
+      assert(!sum.children[1].hasError())
+      assert(sum.children[2].hasError())
     });
   });
 });
