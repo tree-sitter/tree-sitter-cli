@@ -222,4 +222,19 @@ describe("ASTNode", () => {
       assert(sum.children[2].hasError())
     });
   });
+
+  describe('.isMissing()', () => {
+    it('returns true if the node is missing from the source and was inserted via error recovery', () => {
+      document.setInputString('2 +')
+      document.parse()
+      const node = document.rootNode
+      assert.equal(node.toString(), '(program (sum (number) (MISSING)))')
+
+      const sum = node.firstChild
+      assert(sum.hasError())
+      assert(!sum.children[0].isMissing())
+      assert(!sum.children[1].isMissing())
+      assert(sum.children[2].isMissing())
+    });
+  });
 });

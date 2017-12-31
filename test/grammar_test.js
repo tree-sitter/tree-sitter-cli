@@ -129,7 +129,7 @@ describe("Writing a grammar", () => {
         assert.equal(document.rootNode.toString(), "(the_rule)")
 
         document.setInputString("12").parse()
-        assert.equal(document.rootNode.toString(), "(ERROR)")
+        assert.equal(document.rootNode.toString(), "(the_rule (MISSING))")
 
         document.setInputString("1234").parse()
         assert.equal(document.rootNode.toString(), "(the_rule (ERROR (UNEXPECTED '4')))")
