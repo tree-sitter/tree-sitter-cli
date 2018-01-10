@@ -155,8 +155,8 @@ describe("ASTNode", () => {
     });
   });
 
-  describe(".namedDescendantForIndex", function () {
-    it("returns the smallest node that spans the given range", function () {
+  describe(".namedDescendantForIndex", () => {
+    it("returns the smallest node that spans the given range", () => {
       assert.equal('variable', sumNode.descendantForIndex(1, 2).type)
       assert.equal('+', sumNode.descendantForIndex(4, 4).type)
     });
@@ -190,21 +190,38 @@ describe("ASTNode", () => {
   });
 
   describe(".namedDescendantForPosition(min, max)", () => {
-    it("returns the smalleset named node that spans the given range", () => {
+    it("returns the smallest named node that spans the given range", () => {
       assert.equal(
         'variable',
         sumNode.namedDescendantForPosition(
           {row: 0, column: 1},
           {row: 0, column: 2}
         ).type
-      )
+      );
 
       assert.equal(
         'sum',
         sumNode.namedDescendantForPosition(
           {row: 0, column: 4}
         ).type
-      )
+      );
+    });
+  });
+
+  describe(".firstChildForIndex(index)", () => {
+    it("returns the first child that extends beyond the given index", () => {
+      assert.equal('variable', sumNode.firstChildForIndex(0).type);
+      assert.equal('variable', sumNode.firstChildForIndex(1).type);
+      assert.equal('+', sumNode.firstChildForIndex(3).type);
+      assert.equal('number', sumNode.firstChildForIndex(5).type);
+    });
+  });
+
+  describe(".firstNamedChildForIndex(index)", () => {
+    it("returns the first child that extends beyond the given index", () => {
+      assert.equal('variable', sumNode.firstNamedChildForIndex(0).type);
+      assert.equal('variable', sumNode.firstNamedChildForIndex(1).type);
+      assert.equal('number', sumNode.firstNamedChildForIndex(3).type);
     });
   });
 
