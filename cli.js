@@ -52,7 +52,10 @@ switch (argv._[0]) {
         "  --debug-graph, -D  - Render a sequence of diagrams showing the changing parse stack",
         "  --profile, -P      - Render a flame graph of the parse performance (requires sudo)",
         "  --repeat <count>   - Parse the file the given number of times (useful for profiling)",
-        "  --edit <edits>     - Perform the given edits after parsing the file"
+        "  --edit <edits>     - Reparse the file after performing the given edit.",
+        "                       For example, pass '5,3,\"x\"' to delete three characters and",
+        "                       insert an 'x' at index 5. You can repeat this flag multiple times",
+        "                       to perform a series of edits."
       ]);
 
     require("./lib/cli/parse")({
