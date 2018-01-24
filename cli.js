@@ -51,7 +51,8 @@ switch (argv._[0]) {
         "  --debug, -d        - Print a log of parse actions",
         "  --debug-graph, -D  - Render a sequence of diagrams showing the changing parse stack",
         "  --profile, -P      - Render a flame graph of the parse performance (requires sudo)",
-        "  --repeat <count>   - Parse the file the given number of times (useful for profiling)"
+        "  --repeat <count>   - Parse the file the given number of times (useful for profiling)",
+        "  --edit <edits>     - Perform the given edits after parsing the file"
       ]);
 
     require("./lib/cli/parse")({
@@ -61,7 +62,8 @@ switch (argv._[0]) {
       quiet: argv.quiet || argv.q,
       time: argv.time || argv.t,
       profile: argv.profile || argv.P,
-      repeat: argv.repeat
+      repeat: argv.repeat,
+      edits: argv.edit
     }, process.exit);
     break;
 
