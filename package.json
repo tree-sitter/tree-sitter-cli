@@ -20,15 +20,15 @@
   },
   "version": "0.8.3",
   "dependencies": {
-    "ejs": "1.0.0",
-    "fs-extra": "^0.30.0",
     "@maxbrunsfeld/flame-graph": "0.1.7",
+    "ejs": "^2.5.7",
+    "fs-extra": "^0.30.0",
     "mkdirp": "^0.5.1",
     "nan": "^2.0.0",
     "temp": "0.8.x",
     "tree-sitter": "^0.8.7",
     "vows": "0.7.x",
-    "yargs": "4.8.x"
+    "yargs": "^11.0.0"
   },
   "devDependencies": {
     "chai": "3.5.x",
