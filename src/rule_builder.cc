@@ -18,20 +18,24 @@ Local<Object> build_symbol(Local<String> name) {
 }
 
 static void GetProperty(Local<String> property, const Nan::PropertyCallbackInfo<v8::Value> &info) {
-  Local<Object> rules = Local<Object>::Cast(info.This()->GetInternalField(0));
+  Local<Value> rules = info.This()->GetInternalField(0);
   Local<Object> symbol = build_symbol(property);
 
-  if (rules->IsObject() && !rules->HasRealNamedProperty(property)) {
-    Nan::Utf8String property_name(property);
-    std::string error_message = std::string("Undefined rule '") + *property_name + "'";
-    Local<Object> error;
-    if (Nan::To<Object>(Nan::ReferenceError(error_message.c_str())).ToLocal(&error)) {
-      error->Set(Nan::New("symbol").ToLocalChecked(), symbol);
-      info.GetReturnValue().Set(error);
+  if (rules->IsObject()) {
+    Local<Object> rules_object = Local<Object>::Cast(rules);
+    if (!rules_object->HasRealNamedProperty(property)) {
+      Nan::Utf8String property_name(property);
+      std::string error_message = std::string("Undefined rule '") + *property_name + "'";
+      Local<Object> error;
+      if (Nan::To<Object>(Nan::ReferenceError(error_message.c_str())).ToLocal(&error)) {
+        error->Set(Nan::New("symbol").ToLocalChecked(), symbol);
+        info.GetReturnValue().Set(error);
+      }
+      return;
     }
-  } else {
-    info.GetReturnValue().Set(symbol);
   }
+
+  info.GetReturnValue().Set(symbol);
 }
 
 static void construct(const Nan::FunctionCallbackInfo<Value> &info) {
