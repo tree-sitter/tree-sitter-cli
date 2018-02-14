@@ -156,17 +156,18 @@ describe("Document", () => {
 
     beforeEach(() => {
       input = {
-        position: 0,
+        offset: 0,
         chunkSize: 3,
         text: "first-word second-word first-word",
 
-        seek: function (n) {
-          this.position = n;
+        seek (offset, position) {
+          assert.deepEqual(position, {row: 0, column: offset});
+          this.offset = offset;
         },
 
         read: function () {
-          let result = this.text.slice(this.position, this.position + this.chunkSize)
-          this.position += this.chunkSize
+          let result = this.text.slice(this.offset, this.offset + this.chunkSize)
+          this.offset += this.chunkSize
           return result
         }
       };
