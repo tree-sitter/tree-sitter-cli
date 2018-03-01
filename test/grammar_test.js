@@ -4,7 +4,7 @@ const {assert} = require("chai");
 const {dsl, generate, loadLanguage} = require("..");
 const {alias, blank, choice, prec, repeat, seq, sym, grammar} = dsl
 const {Document} = require("tree-sitter")
-const GRAMMAR_SCHEMA = require("../vendor/tree-sitter/doc/grammar-schema")
+const GRAMMAR_SCHEMA = require("../vendor/tree-sitter/src/compiler/grammar-schema")
 const schemaValidator = new jsonSchema.Validator();
 
 describe("Writing a grammar", () => {
