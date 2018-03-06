@@ -1,10 +1,23 @@
 #!/usr/bin/env node
 
 const path = require("path");
-const argv = require("yargs").argv;
-const needsHelp = argv.help || argv.h;
+const minimist = require("minimist");
 
-switch (argv._[0]) {
+let args = process.argv.slice(2);
+let subcommand = args.shift();
+let needsHelp = false;
+
+if (subcommand === 'help') {
+  needsHelp = true;
+  subcommand = args.shift();
+}
+
+let argv = minimist(args);
+if (argv.h || argv.help) {
+  needsHelp = true;
+}
+
+switch (subcommand) {
   case "generate":
     if (needsHelp)
       usage("generate", [
@@ -39,7 +52,7 @@ switch (argv._[0]) {
     break;
 
   case "parse":
-    const codePaths = argv._.slice(1);
+    const codePaths = argv._;
     if (needsHelp || codePaths.length === 0)
       usage("parse <code-file>", [
         "Parse the given file using the parser in the current working directory and print the syntax tree.",
