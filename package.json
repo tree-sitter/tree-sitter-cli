@@ -18,7 +18,7 @@
   "bin": {
     "tree-sitter": "cli.js"
   },
-  "version": "0.10.0",
+  "version": "0.10.1",
   "dependencies": {
     "@maxbrunsfeld/flame-graph": "^0.1.8",
     "ejs": "^2.5.7",
