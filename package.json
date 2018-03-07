@@ -20,7 +20,7 @@
   },
   "version": "0.10.1",
   "dependencies": {
-    "@maxbrunsfeld/flame-graph": "^0.1.8",
+    "@maxbrunsfeld/flame-graph": "^0.1.9",
     "ejs": "^2.5.7",
     "fs-extra": "^0.30.0",
     "minimist": "^1.2.0",
