@@ -1,316 +1,385 @@
-const path = require('path')
-const jsonSchema = require('jsonschema');
-const {assert} = require("chai");
-const {dsl, generate, loadLanguage} = require("..");
-const {alias, blank, choice, prec, repeat, seq, sym, grammar} = dsl
-const {Document} = require("tree-sitter")
-const GRAMMAR_SCHEMA = require("../vendor/tree-sitter/src/compiler/grammar-schema")
+const Parser = require("tree-sitter");
+const path = require("path");
+const { assert } = require("chai");
+const { dsl, generate, loadLanguage } = require("..");
+const { alias, blank, choice, prec, repeat, seq, sym, grammar } = dsl;
+const jsonSchema = require("jsonschema");
+const GRAMMAR_SCHEMA = require("../vendor/tree-sitter/src/compiler/grammar-schema");
+
 const schemaValidator = new jsonSchema.Validator();
 
 describe("Writing a grammar", () => {
-  let document;
+  let parser, tree;
 
   beforeEach(() => {
-    document = new Document()
+    parser = new Parser();
   });
 
   describe("rules", () => {
     describe("blank", () => {
       it("matches the empty string", () => {
-        let language = generateAndLoadLanguage(grammar({
-          name: "test_grammar",
-          rules: {
-            the_rule: $ => blank()
-          }
-        }))
+        const language = generateAndLoadLanguage(
+          grammar({
+            name: "test_grammar",
+            rules: {
+              the_rule: $ => blank()
+            }
+          })
+        );
 
-        document.setLanguage(language)
+        parser.setLanguage(language);
 
-        document.setInputString("").parse()
-        assert.equal(document.rootNode.toString(), "(the_rule)")
+        tree = parser.parse("");
+        assert.equal(tree.rootNode.toString(), "(the_rule)");
 
-        document.setInputString("not-blank").parse()
-        assert.equal(document.rootNode.toString(), "(the_rule (ERROR (UNEXPECTED 'n')))")
+        tree = parser.parse("not-blank");
+        assert.equal(
+          tree.rootNode.toString(),
+          "(the_rule (ERROR (UNEXPECTED 'n')))"
+        );
       });
     });
 
     describe("string", () => {
       it("matches one particular string", () => {
-        let language = generateAndLoadLanguage(grammar({
-          name: "test_grammar",
-          rules: {
-            the_rule: $ => "the-string"
-          }
-        }))
+        const language = generateAndLoadLanguage(
+          grammar({
+            name: "test_grammar",
+            rules: {
+              the_rule: $ => "the-string"
+            }
+          })
+        );
 
-        document.setLanguage(language)
+        parser.setLanguage(language);
 
-        document.setInputString("the-string").parse()
-        assert.equal(document.rootNode.toString(), "(the_rule)")
+        tree = parser.parse("the-string");
+        assert.equal(tree.rootNode.toString(), "(the_rule)");
 
-        document.setInputString("another-string").parse()
-        assert.equal(document.rootNode.toString(), "(ERROR (UNEXPECTED 'a'))")
+        tree = parser.parse("another-string");
+        assert.equal(tree.rootNode.toString(), "(ERROR (UNEXPECTED 'a'))");
       });
     });
 
     describe("regex", () => {
       it("matches according to a regular expression", () => {
-        let language = generateAndLoadLanguage(grammar({
-          name: "test_grammar",
-          rules: {
-            the_rule: $ => (/[a-c]+/)
-          }
-        }))
+        const language = generateAndLoadLanguage(
+          grammar({
+            name: "test_grammar",
+            rules: {
+              the_rule: $ => /[a-c]+/
+            }
+          })
+        );
 
-        document.setLanguage(language)
+        parser.setLanguage(language);
 
-        document.setInputString("abcba").parse()
-        assert.equal(document.rootNode.toString(), "(the_rule)")
+        tree = parser.parse("abcba");
+        assert.equal(tree.rootNode.toString(), "(the_rule)");
 
-        document.setInputString("def").parse()
-        assert.equal(document.rootNode.toString(), "(ERROR (UNEXPECTED 'd'))")
+        tree = parser.parse("def");
+        assert.equal(tree.rootNode.toString(), "(ERROR (UNEXPECTED 'd'))");
       });
 
       it("handles unicode escape sequences in regular expressions", () => {
-        let language = generateAndLoadLanguage(grammar({
-          name: "test_grammar",
-          rules: {
-            the_rule: $ => choice(/\u09afb/, /\u19afc/)
-          }
-        }))
+        const language = generateAndLoadLanguage(
+          grammar({
+            name: "test_grammar",
+            rules: {
+              the_rule: $ => choice(/\u09afb/, /\u19afc/)
+            }
+          })
+        );
 
-        document.setLanguage(language)
+        parser.setLanguage(language);
 
-        document.setInputString("\u09af" + "b").parse()
-        assert.equal(document.rootNode.toString(), "(the_rule)")
+        tree = parser.parse("\u09af" + "b");
+        assert.equal(tree.rootNode.toString(), "(the_rule)");
 
-        document.setInputString("\u09af" + "c").parse()
-        assert.equal(document.rootNode.toString(), "(ERROR (UNEXPECTED 'c'))")
+        tree = parser.parse("\u09af" + "c");
+        assert.equal(tree.rootNode.toString(), "(ERROR (UNEXPECTED 'c'))");
 
-        document.setInputString("\u19af" + "c").parse()
-        assert.equal(document.rootNode.toString(), "(the_rule)")
+        tree = parser.parse("\u19af" + "c");
+        assert.equal(tree.rootNode.toString(), "(the_rule)");
       });
     });
 
     describe("repeat", () => {
       it("applies the given rule any number of times", () => {
-        let language = generateAndLoadLanguage(grammar({
-          name: "test_grammar",
-          rules: {
-            the_rule: $ => repeat("o")
-          }
-        }))
+        const language = generateAndLoadLanguage(
+          grammar({
+            name: "test_grammar",
+            rules: {
+              the_rule: $ => repeat("o")
+            }
+          })
+        );
 
-        document.setLanguage(language)
+        parser.setLanguage(language);
 
-        document.setInputString("").parse()
-        assert.equal(document.rootNode.toString(), "(the_rule)")
+        tree = parser.parse("");
+        assert.equal(tree.rootNode.toString(), "(the_rule)");
 
-        document.setInputString("o").parse()
-        assert.equal(document.rootNode.toString(), "(the_rule)")
+        tree = parser.parse("o");
+        assert.equal(tree.rootNode.toString(), "(the_rule)");
 
-        document.setInputString("ooo").parse()
-        assert.equal(document.rootNode.toString(), "(the_rule)")
+        tree = parser.parse("ooo");
+        assert.equal(tree.rootNode.toString(), "(the_rule)");
       });
     });
 
     describe("sequence", () => {
       it("applies a list of other rules in sequence", () => {
-        let language = generateAndLoadLanguage(grammar({
-          name: "test_grammar",
-          rules: {
-            the_rule: $ => seq("1", "2", "3")
-          }
-        }))
+        const language = generateAndLoadLanguage(
+          grammar({
+            name: "test_grammar",
+            rules: {
+              the_rule: $ => seq("1", "2", "3")
+            }
+          })
+        );
 
-        document.setLanguage(language)
+        parser.setLanguage(language);
 
-        document.setInputString("123").parse()
-        assert.equal(document.rootNode.toString(), "(the_rule)")
+        tree = parser.parse("123");
+        assert.equal(tree.rootNode.toString(), "(the_rule)");
 
-        document.setInputString("12").parse()
-        assert.equal(document.rootNode.toString(), "(the_rule (MISSING))")
+        tree = parser.parse("12");
+        assert.equal(tree.rootNode.toString(), "(the_rule (MISSING))");
 
-        document.setInputString("1234").parse()
-        assert.equal(document.rootNode.toString(), "(the_rule (ERROR (UNEXPECTED '4')))")
+        tree = parser.parse("1234");
+        assert.equal(
+          tree.rootNode.toString(),
+          "(the_rule (ERROR (UNEXPECTED '4')))"
+        );
       });
     });
 
     describe("choice", () => {
       it("applies any of a list of rules", () => {
-        let language = generateAndLoadLanguage(grammar({
-          name: "test_grammar",
-          rules: {
-            the_rule: $ => choice("1", "2", "3")
-          }
-        }))
+        const language = generateAndLoadLanguage(
+          grammar({
+            name: "test_grammar",
+            rules: {
+              the_rule: $ => choice("1", "2", "3")
+            }
+          })
+        );
 
-        document.setLanguage(language)
+        parser.setLanguage(language);
 
-        document.setInputString("1").parse()
-        assert.equal(document.rootNode.toString(), "(the_rule)")
+        tree = parser.parse("1");
+        assert.equal(tree.rootNode.toString(), "(the_rule)");
 
-        document.setInputString("4").parse()
-        assert.equal(document.rootNode.toString(), "(ERROR (UNEXPECTED '4'))")
+        tree = parser.parse("4");
+        assert.equal(tree.rootNode.toString(), "(ERROR (UNEXPECTED '4'))");
       });
     });
 
     describe("symbol", () => {
       it("applies another rule in the grammar by name", () => {
-        let language = generateAndLoadLanguage(grammar({
-          name: "test_grammar",
-          rules: {
-            the_rule: $ => seq($.second_rule, "-", $.third_rule),
-            second_rule: $ => "one",
-            third_rule: $ => "two",
-          }
-        }))
+        const language = generateAndLoadLanguage(
+          grammar({
+            name: "test_grammar",
+            rules: {
+              the_rule: $ => seq($.second_rule, "-", $.third_rule),
+              second_rule: $ => "one",
+              third_rule: $ => "two"
+            }
+          })
+        );
 
-        document.setLanguage(language)
+        parser.setLanguage(language);
 
-        document.setInputString("one-two").parse()
-        assert.equal(document.rootNode.toString(), "(the_rule (second_rule) (third_rule))")
+        tree = parser.parse("one-two");
+        assert.equal(
+          tree.rootNode.toString(),
+          "(the_rule (second_rule) (third_rule))"
+        );
       });
     });
 
     describe("prec", () => {
       it("alters the precedence and associativity of the given rule", () => {
-        let language = generateAndLoadLanguage(grammar({
-          name: "test_grammar",
-          rules: {
-            expression: $ => $._expression,
-            _expression: $ => choice($.sum, $.product, $.equation, $.variable),
-            product: $ => prec.left(2, seq($._expression, "*", $._expression)),
-            sum: $ => prec.left(1, seq($._expression, "+", $._expression)),
-            equation: $ => prec.right(0, seq($._expression, "=", $._expression)),
-            variable: $ => /[a-z]+/,
-          }
-        }))
+        const language = generateAndLoadLanguage(
+          grammar({
+            name: "test_grammar",
+            rules: {
+              expression: $ => $._expression,
+              _expression: $ =>
+                choice($.sum, $.product, $.equation, $.variable),
+              product: $ =>
+                prec.left(2, seq($._expression, "*", $._expression)),
+              sum: $ => prec.left(1, seq($._expression, "+", $._expression)),
+              equation: $ =>
+                prec.right(0, seq($._expression, "=", $._expression)),
+              variable: $ => /[a-z]+/
+            }
+          })
+        );
 
-        document.setLanguage(language)
+        parser.setLanguage(language);
 
         // product has higher precedence than sum
-        document.setInputString("a + b * c").parse()
-        assert.equal(document.rootNode.toString(), "(expression (sum (variable) (product (variable) (variable))))")
-        document.setInputString("a * b + c").parse()
-        assert.equal(document.rootNode.toString(), "(expression (sum (product (variable) (variable)) (variable)))")
+        tree = parser.parse("a + b * c");
+        assert.equal(
+          tree.rootNode.toString(),
+          "(expression (sum (variable) (product (variable) (variable))))"
+        );
+        tree = parser.parse("a * b + c");
+        assert.equal(
+          tree.rootNode.toString(),
+          "(expression (sum (product (variable) (variable)) (variable)))"
+        );
 
         // product and sum are left-associative
-        document.setInputString("a * b * c").parse()
-        assert.equal(document.rootNode.toString(), "(expression (product (product (variable) (variable)) (variable)))")
-        document.setInputString("a + b + c").parse()
-        assert.equal(document.rootNode.toString(), "(expression (sum (sum (variable) (variable)) (variable)))")
+        tree = parser.parse("a * b * c");
+        assert.equal(
+          tree.rootNode.toString(),
+          "(expression (product (product (variable) (variable)) (variable)))"
+        );
+        tree = parser.parse("a + b + c");
+        assert.equal(
+          tree.rootNode.toString(),
+          "(expression (sum (sum (variable) (variable)) (variable)))"
+        );
 
         // equation is right-associative
-        document.setInputString("a = b = c").parse()
-        assert.equal(document.rootNode.toString(), "(expression (equation (variable) (equation (variable) (variable))))")
+        tree = parser.parse("a = b = c");
+        assert.equal(
+          tree.rootNode.toString(),
+          "(expression (equation (variable) (equation (variable) (variable))))"
+        );
       });
     });
 
     describe("alias", () => {
       it("assigns syntax nodes matched by the given rule an alternative name", () => {
-        const language = generateAndLoadLanguage(grammar({
-          name: "test_grammar",
-          rules: {
-            rule_1: $ => seq(alias($.rule_2, $.rule_2000), "\n", $.rule_3),
-            rule_2: $ => "#two",
-            rule_3: $ => alias(/#[ \t]*three/, "#three"),
-          }
-        }))
+        const language = generateAndLoadLanguage(
+          grammar({
+            name: "test_grammar",
+            rules: {
+              rule_1: $ => seq(alias($.rule_2, $.rule_2000), "\n", $.rule_3),
+              rule_2: $ => "#two",
+              rule_3: $ => alias(/#[ \t]*three/, "#three")
+            }
+          })
+        );
 
-        document.setLanguage(language)
-        document.setInputString("#two\n#  three").parse()
-        assert.equal(document.rootNode.toString(), "(rule_1 (rule_2000) (rule_3))")
+        parser.setLanguage(language);
+        tree = parser.parse("#two\n#  three");
+        assert.equal(tree.rootNode.toString(), "(rule_1 (rule_2000) (rule_3))");
 
-        const rule2Node = document.rootNode.namedChildren[0]
-        assert.equal(rule2Node.namedChildren.length, 0)
-        assert.equal(rule2Node.children.length, 0)
+        const rule2Node = tree.rootNode.namedChildren[0];
+        assert.equal(rule2Node.namedChildren.length, 0);
+        assert.equal(rule2Node.children.length, 0);
 
-        const rule3Node = document.rootNode.namedChildren[1]
-        assert.equal(rule3Node.namedChildren.length, 0)
-        assert.deepEqual(rule3Node.children.map(node => node.type), ['#three'])
-        assert.deepEqual(rule3Node.children.map(node => node.isNamed), [false])
-      })
-    })
+        const rule3Node = tree.rootNode.namedChildren[1];
+        assert.equal(rule3Node.namedChildren.length, 0);
+        assert.deepEqual(rule3Node.children.map(node => node.type), ["#three"]);
+        assert.deepEqual(rule3Node.children.map(node => node.isNamed), [false]);
+      });
+    });
   });
 
   describe("inlining rules", () => {
     it("duplicates the content of the specified rules at all of their usage sites", () => {
-      const language = generateAndLoadLanguage(grammar({
-        name: "test_grammar",
-        inline: $ => [$.rule_c],
-        rules: {
-          rule_a: $ => seq($.rule_b, $.rule_c),
-          rule_b: $ => 'b',
-          rule_c: $ => seq($.rule_d, $.rule_e),
-          rule_d: $ => 'd',
-          rule_e: $ => 'e',
-        }
-      }));
+      const language = generateAndLoadLanguage(
+        grammar({
+          name: "test_grammar",
+          inline: $ => [$.rule_c],
+          rules: {
+            rule_a: $ => seq($.rule_b, $.rule_c),
+            rule_b: $ => "b",
+            rule_c: $ => seq($.rule_d, $.rule_e),
+            rule_d: $ => "d",
+            rule_e: $ => "e"
+          }
+        })
+      );
 
-      document.setLanguage(language)
+      parser.setLanguage(language);
 
-      document.setInputString("b d e").parse()
-      assert.equal(document.rootNode.toString(), "(rule_a (rule_b) (rule_d) (rule_e))")
+      tree = parser.parse("b d e");
+      assert.equal(
+        tree.rootNode.toString(),
+        "(rule_a (rule_b) (rule_d) (rule_e))"
+      );
     });
   });
 
   describe("extra tokens", () => {
     it("allows the given tokens to appear anywhere in the input", () => {
-      let language = generateAndLoadLanguage(grammar({
-        name: "test_grammar",
-        extras: $ => [$.ellipsis, " "],
-        rules: {
-          the_rule: $ => repeat($.word),
-          word: $ => (/\w+/),
-          ellipsis: $ => "...",
-        }
-      }));
+      const language = generateAndLoadLanguage(
+        grammar({
+          name: "test_grammar",
+          extras: $ => [$.ellipsis, " "],
+          rules: {
+            the_rule: $ => repeat($.word),
+            word: $ => /\w+/,
+            ellipsis: $ => "..."
+          }
+        })
+      );
 
-      document.setLanguage(language);
+      parser.setLanguage(language);
 
-      document.setInputString("one two ... three ... four").parse();
+      tree = parser.parse("one two ... three ... four");
 
       assert.equal(
-        document.rootNode.toString(),
-        "(the_rule (word) (word) (ellipsis) (word) (ellipsis) (word))");
+        tree.rootNode.toString(),
+        "(the_rule (word) (word) (ellipsis) (word) (ellipsis) (word))"
+      );
     });
 
     it("allows anonymous rules to be provided", () => {
-      let language = generateAndLoadLanguage(grammar({
-        name: "test_grammar",
-        extras: $ => ["...", "---"],
-        rules: {
-          the_rule: $ => repeat($.word),
-          word: $ => "hello",
-        }
-      }));
+      const language = generateAndLoadLanguage(
+        grammar({
+          name: "test_grammar",
+          extras: $ => ["...", "---"],
+          rules: {
+            the_rule: $ => repeat($.word),
+            word: $ => "hello"
+          }
+        })
+      );
 
-      document.setLanguage(language);
+      parser.setLanguage(language);
 
-      document.setInputString("hello...hello---hello").parse();
-      assert.equal(document.rootNode.toString(), "(the_rule (word) (word) (word))");
+      tree = parser.parse("hello...hello---hello");
+      assert.equal(tree.rootNode.toString(), "(the_rule (word) (word) (word))");
 
-      document.setInputString("hello hello").parse();
-      assert.equal(document.rootNode.toString(), "(the_rule (word) (ERROR (UNEXPECTED ' ')) (word))");
+      tree = parser.parse("hello hello");
+      assert.equal(
+        tree.rootNode.toString(),
+        "(the_rule (word) (ERROR (UNEXPECTED ' ')) (word))"
+      );
     });
 
     it("defaults to whitespace characters", () => {
-      let language = generateAndLoadLanguage(grammar({
-        name: "test_grammar",
-        rules: {
-          the_rule: $ => repeat($.word),
-          word: $ => "hello",
-        }
-      }))
+      const language = generateAndLoadLanguage(
+        grammar({
+          name: "test_grammar",
+          rules: {
+            the_rule: $ => repeat($.word),
+            word: $ => "hello"
+          }
+        })
+      );
 
-      document.setLanguage(language)
+      parser.setLanguage(language);
 
-      document.setInputString("hello hello\thello\nhello\rhello").parse()
-      assert.equal(document.rootNode.toString(), "(the_rule (word) (word) (word) (word) (word))")
+      tree = parser.parse("hello hello\thello\nhello\rhello");
+      assert.equal(
+        tree.rootNode.toString(),
+        "(the_rule (word) (word) (word) (word) (word))"
+      );
 
-      document.setInputString("hello.hello").parse()
-      assert.equal(document.rootNode.toString(), "(the_rule (word) (ERROR (UNEXPECTED '.')) (word))")
+      tree = parser.parse("hello.hello");
+      assert.equal(
+        tree.rootNode.toString(),
+        "(the_rule (word) (ERROR (UNEXPECTED '.')) (word))"
+      );
     });
   });
 
@@ -319,14 +388,12 @@ describe("Writing a grammar", () => {
       let grammarOptions = {
         name: "test_grammar",
         rules: {
-          sentence: $ => choice(
-            seq($.first_rule, "c", "d"),
-            seq($.second_rule, "c", "e")
-          ),
+          sentence: $ =>
+            choice(seq($.first_rule, "c", "d"), seq($.second_rule, "c", "e")),
 
           first_rule: $ => seq("a", "b"),
 
-          second_rule: $ => seq("a", "b"),
+          second_rule: $ => seq("a", "b")
         }
       };
 
@@ -339,20 +406,18 @@ describe("Writing a grammar", () => {
         threw = true;
       }
 
-      assert.ok(threw, "Expected a conflict exception")
+      assert.ok(threw, "Expected a conflict exception");
 
-      grammarOptions.conflicts = $ => [
-        [$.first_rule, $.second_rule]
-      ]
+      grammarOptions.conflicts = $ => [[$.first_rule, $.second_rule]];
 
-      let language = generateAndLoadLanguage(grammar(grammarOptions))
-      document.setLanguage(language)
+      const language = generateAndLoadLanguage(grammar(grammarOptions));
+      parser.setLanguage(language);
 
-      document.setInputString("a b c d").parse()
-      assert.equal("(sentence (first_rule))", document.rootNode.toString())
+      tree = parser.parse("a b c d");
+      assert.equal("(sentence (first_rule))", tree.rootNode.toString());
 
-      document.setInputString("a b c e").parse()
-      assert.equal("(sentence (second_rule))", document.rootNode.toString())
+      tree = parser.parse("a b c e");
+      assert.equal("(sentence (second_rule))", tree.rootNode.toString());
     });
 
     it("allows ambiguities to be resolved via dynamic precedence", () => {
@@ -360,48 +425,51 @@ describe("Writing a grammar", () => {
 
       const grammarOptions = {
         name: "test_grammar",
-        conflicts: $ => [
-          [$.expression, $.command],
-          [$.call, $.command]
-        ],
+        conflicts: $ => [[$.expression, $.command], [$.call, $.command]],
         rules: {
-          expression: $ => choice(
-            $.call,
-            $.command,
-            $.parenthesized,
-            $.identifier
-          ),
+          expression: $ =>
+            choice($.call, $.command, $.parenthesized, $.identifier),
 
-          call: $ => prec.dynamic(callPrecedence, seq(
-            $.expression,
-            '(',
-            $.expression,
-            repeat(seq(',', $.expression)),
-            ')'
-          )),
+          call: $ =>
+            prec.dynamic(
+              callPrecedence,
+              seq(
+                $.expression,
+                "(",
+                $.expression,
+                repeat(seq(",", $.expression)),
+                ")"
+              )
+            ),
 
           command: $ => seq($.identifier, $.expression),
 
-          parenthesized: $ => seq('(', $.expression, ')'),
+          parenthesized: $ => seq("(", $.expression, ")"),
 
           identifier: $ => /[a-z]+/
         }
       };
 
-      document.setLanguage(generateAndLoadLanguage(grammar(grammarOptions)))
-      document.setInputString("a(b)").parse()
-      assert.equal(document.rootNode.toString(), "(expression (command (identifier) (expression (parenthesized (expression (identifier))))))")
+      parser.setLanguage(generateAndLoadLanguage(grammar(grammarOptions)));
+      tree = parser.parse("a(b)");
+      assert.equal(
+        tree.rootNode.toString(),
+        "(expression (command (identifier) (expression (parenthesized (expression (identifier))))))"
+      );
 
-      callPrecedence = 1
-      document.setLanguage(generateAndLoadLanguage(grammar(grammarOptions)))
-      document.setInputString("a(b)").parse()
-      assert.equal(document.rootNode.toString(), "(expression (call (expression (identifier)) (expression (identifier))))")
+      callPrecedence = 1;
+      parser.setLanguage(generateAndLoadLanguage(grammar(grammarOptions)));
+      tree = parser.parse("a(b)");
+      assert.equal(
+        tree.rootNode.toString(),
+        "(expression (call (expression (identifier)) (expression (identifier))))"
+      );
     });
   });
 
-  describe("external tokens", function () {
+  describe("external tokens", function() {
     it("causes the grammar to work even with LR(1) conflicts", () => {
-      let language = generateAndLoadLanguage(
+      const language = generateAndLoadLanguage(
         grammar({
           name: "test_grammar",
           externals: $ => [$.external_a, $.external_b],
@@ -409,105 +477,114 @@ describe("Writing a grammar", () => {
             program: $ => seq($.external_a, $.external_b)
           }
         }),
-        [path.join(__dirname, 'fixtures', 'external_scan.c')]
+        [path.join(__dirname, "fixtures", "external_scan.c")]
       );
 
-      document.setLanguage(language)
-      document.setInputString("a b").parse()
-      assert.equal(document.rootNode.toString(), "(program (external_a) (external_b))")
-    })
+      parser.setLanguage(language);
+      tree = parser.parse("a b");
+      assert.equal(
+        tree.rootNode.toString(),
+        "(program (external_a) (external_b))"
+      );
+    });
   });
 
   describe("extending another grammar", () => {
     it("allows rules, extras, and conflicts to be added", () => {
       let grammar1 = grammar({
-        name: 'grammar1',
-        extras: $ => [' '],
+        name: "grammar1",
+        extras: $ => [" "],
         rules: {
           thing: $ => repeat($.triple),
           triple: $ => seq($.word, $.word, $.word),
-          word: $ => (/\w+/)
+          word: $ => /\w+/
         }
       });
 
-      document.setLanguage(generateAndLoadLanguage(grammar1))
-      document.setInputString("one two three").parse()
-      assert.equal(document.rootNode.toString(), "(thing (triple (word) (word) (word)))");
+      parser.setLanguage(generateAndLoadLanguage(grammar1));
+      tree = parser.parse("one two three");
+      assert.equal(
+        tree.rootNode.toString(),
+        "(thing (triple (word) (word) (word)))"
+      );
 
-      document.setInputString("one two ... three").parse()
-      assert.equal(document.rootNode.toString(), "(thing (triple (word) (word) (ERROR (UNEXPECTED '.')) (word)))")
+      tree = parser.parse("one two ... three");
+      assert.equal(
+        tree.rootNode.toString(),
+        "(thing (triple (word) (word) (ERROR (UNEXPECTED '.')) (word)))"
+      );
 
       let grammar2 = grammar(grammar1, {
         name: "grammar2",
-        extras: ($, original) => original.concat([ $.ellipsis ]),
+        extras: ($, original) => original.concat([$.ellipsis]),
         rules: {
-          ellipsis: $ => '...'
+          ellipsis: $ => "..."
         }
-      })
+      });
 
-      document.setLanguage(generateAndLoadLanguage(grammar2))
-      document.setInputString("one two ... three").parse()
-      assert.equal(document.rootNode.toString(), "(thing (triple (word) (word) (ellipsis) (word)))")
+      parser.setLanguage(generateAndLoadLanguage(grammar2));
+      tree = parser.parse("one two ... three");
+      assert.equal(
+        tree.rootNode.toString(),
+        "(thing (triple (word) (word) (ellipsis) (word)))"
+      );
 
-      document.setInputString("one two ... three ... four").parse()
-      assert.equal(document.rootNode.toString(), "(thing (triple (word) (word) (ellipsis) (word)) (ellipsis) (ERROR (word)))")
+      tree = parser.parse("one two ... three ... four");
+      assert.equal(
+        tree.rootNode.toString(),
+        "(thing (triple (word) (word) (ellipsis) (word)) (ellipsis) (ERROR (word)))"
+      );
 
       let grammar3 = grammar(grammar2, {
         name: "grammar3",
         conflicts: $ => [[$.triple, $.double]],
         rules: {
-          thing: ($, original) => choice(
-            original,
-            repeat($.double)
-          ),
-          double: $ => seq($.word, $.word),
+          thing: ($, original) => choice(original, repeat($.double)),
+          double: $ => seq($.word, $.word)
         }
       });
 
-      document.setLanguage(generateAndLoadLanguage(grammar3));
-      document.setInputString("one two ... three ... four").parse();
+      parser.setLanguage(generateAndLoadLanguage(grammar3));
+      tree = parser.parse("one two ... three ... four");
       assert.equal(
-        document.rootNode.toString(),
-        "(thing (double (word) (word)) (ellipsis) (double (word) (ellipsis) (word)))");
+        tree.rootNode.toString(),
+        "(thing (double (word) (word)) (ellipsis) (double (word) (ellipsis) (word)))"
+      );
     });
 
     it("allows inlines to be added", () => {
       const grammar1 = grammar({
-        name: 'grammar1',
+        name: "grammar1",
 
-        inline: $ => [
-          $.something,
-        ],
+        inline: $ => [$.something],
 
         rules: {
-          statement: $ => seq($.something, ';'),
+          statement: $ => seq($.something, ";"),
           something: $ => $.expression,
           expression: $ => choice($.property, $.call, $.identifier),
-          property: $ => seq($.expression, '.', $.identifier),
-          call: $ => seq($.expression, '(', $.expression, ')'),
-          identifier: $ => /[a-z]+/,
+          property: $ => seq($.expression, ".", $.identifier),
+          call: $ => seq($.expression, "(", $.expression, ")"),
+          identifier: $ => /[a-z]+/
         }
       });
 
-      document.setLanguage(generateAndLoadLanguage(grammar1))
-      document.setInputString("a.b(c);").parse()
+      parser.setLanguage(generateAndLoadLanguage(grammar1));
+      tree = parser.parse("a.b(c);");
       assert.equal(
-        document.rootNode.toString(),
+        tree.rootNode.toString(),
         "(statement (expression (call (expression (property (expression (identifier)) (identifier))) (expression (identifier)))))"
       );
 
       const grammar2 = grammar(grammar1, {
-        name: 'grammar2',
+        name: "grammar2",
 
-        inline: ($, original) => original.concat([
-          $.expression,
-        ])
+        inline: ($, original) => original.concat([$.expression])
       });
 
-      document.setLanguage(generateAndLoadLanguage(grammar2))
-      document.setInputString("a.b(c);").parse()
+      parser.setLanguage(generateAndLoadLanguage(grammar2));
+      tree = parser.parse("a.b(c);");
       assert.equal(
-        document.rootNode.toString(),
+        tree.rootNode.toString(),
         "(statement (call (property (identifier) (identifier)) (identifier)))"
       );
     });
@@ -519,14 +596,16 @@ describe("Writing a grammar", () => {
         let threw = false;
 
         try {
-          generate(grammar({
-            name: "test_grammar",
-            rules: {
-              sentence: $ => choice($.first_rule, $.second_rule),
-              first_rule: $ => seq("things", "stuff"),
-              second_rule: $ => seq("things", "stuff"),
-            }
-          }));
+          generate(
+            grammar({
+              name: "test_grammar",
+              rules: {
+                sentence: $ => choice($.first_rule, $.second_rule),
+                first_rule: $ => seq("things", "stuff"),
+                second_rule: $ => seq("things", "stuff")
+              }
+            })
+          );
         } catch (e) {
           assert.match(e.message, /Unresolved conflict /);
           assert.match(e.message, /first_rule/);
@@ -541,72 +620,84 @@ describe("Writing a grammar", () => {
 
     describe("when the grammar has no name", () => {
       it("raises an error", () => {
-        assert.throws((() =>
-          grammar({
-            rules: {
-              the_rule: $ => blank()
-            }
-          })
-        ), /Grammar.*name.*string/)
+        assert.throws(
+          () =>
+            grammar({
+              rules: {
+                the_rule: $ => blank()
+              }
+            }),
+          /Grammar.*name.*string/
+        );
 
-        assert.throws((() =>
-          grammar({
-            name: {},
-            rules: {
-              the_rule: $ => blank()
-            }
-          })
-        ), /Grammar.*name.*string/)
+        assert.throws(
+          () =>
+            grammar({
+              name: {},
+              rules: {
+                the_rule: $ => blank()
+              }
+            }),
+          /Grammar.*name.*string/
+        );
       });
     });
 
     describe("when the grammar has no rules", () => {
       it("raises an error", () => {
-        assert.throws((() =>
-          grammar({
-            name: "test_grammar",
-          })
-        ), /Grammar.*must have.*rule/)
+        assert.throws(
+          () =>
+            grammar({
+              name: "test_grammar"
+            }),
+          /Grammar.*must have.*rule/
+        );
       });
     });
 
     describe("when the grammar contains a reference to an undefined rule", () => {
       it("throws an error with the rule name", () => {
-        assert.throws((() =>
-          grammar({
-            name: "test_grammar",
-            rules: {
-              something: $ => seq("(", $.something_else, ")")
-            }
-          })
-        ), /Undefined.*rule.*something_else/)
+        assert.throws(
+          () =>
+            grammar({
+              name: "test_grammar",
+              rules: {
+                something: $ => seq("(", $.something_else, ")")
+              }
+            }),
+          /Undefined.*rule.*something_else/
+        );
       });
     });
 
     describe("when one of the grammar rules is not a function", () => {
       it("raises an error", () => {
-        assert.throws((() =>
-          grammar({
-            name: "test_grammar",
-            rules: {
-              the_rule: blank()
-            }
-          })
-        ), /Grammar.*rule.*function.*the_rule/)
+        assert.throws(
+          () =>
+            grammar({
+              name: "test_grammar",
+              rules: {
+                the_rule: blank()
+              }
+            }),
+          /Grammar.*rule.*function.*the_rule/
+        );
       });
     });
 
     describe("when the grammar's extras value is not a function", () => {
       it("raises an error", () => {
-        assert.throws((() =>
-          grammar({
-            extras: [],
-            name: "test_grammar",
-            rules: {
-              the_rule: $ => blank()
-            }
-          })
-        ), /Grammar.*extras.*function/)
+        assert.throws(
+          () =>
+            grammar({
+              extras: [],
+              name: "test_grammar",
+              rules: {
+                the_rule: $ => blank()
+              }
+            }),
+          /Grammar.*extras.*function/
+        );
       });
     });
 
@@ -615,43 +706,49 @@ describe("Writing a grammar", () => {
         let threw = false;
 
         try {
-          generate(grammar({
-            name: "test_grammar",
-            extras: $ => [$.yyy],
-            rules: {
-              xxx: $ => seq($.yyy, $.yyy),
-              yyy: $ => seq($.zzz, $.zzz),
-              zzz: $ => "zzz",
-            }
-          }))
+          generate(
+            grammar({
+              name: "test_grammar",
+              extras: $ => [$.yyy],
+              rules: {
+                xxx: $ => seq($.yyy, $.yyy),
+                yyy: $ => seq($.zzz, $.zzz),
+                zzz: $ => "zzz"
+              }
+            })
+          );
         } catch (e) {
-          assert.match(e.message, /Non-token symbol yyy/)
-          assert.property(e, "isGrammarError")
-          threw = true
+          assert.match(e.message, /Non-token symbol yyy/);
+          assert.property(e, "isGrammarError");
+          threw = true;
         }
 
-        assert.ok(threw, "Expected an exception!")
+        assert.ok(threw, "Expected an exception!");
       });
     });
 
     describe("when a symbol references an undefined rule", () => {
       it("raises an error", () => {
-        assert.throws((() =>
-          generate(grammar({
-            name: "test_grammar",
-            rules: {
-              xxx: $ => sym("yyy")
-            }
-          }))
-        ), /Undefined.*rule.*yyy/)
+        assert.throws(
+          () =>
+            generate(
+              grammar({
+                name: "test_grammar",
+                rules: {
+                  xxx: $ => sym("yyy")
+                }
+              })
+            ),
+          /Undefined.*rule.*yyy/
+        );
       });
     });
   });
 });
 
-function generateAndLoadLanguage (grammar, ...args) {
+function generateAndLoadLanguage(grammar, ...args) {
   var validation = schemaValidator.validate(grammar, GRAMMAR_SCHEMA);
   if (!validation.valid) throw new Error(validation.errors[0]);
-  const parserCode = generate(grammar)
+  const parserCode = generate(grammar);
   return loadLanguage(parserCode, ...args);
 }

@@ -1,257 +1,255 @@
-const assert = require("assert");
-const {Document} = require("tree-sitter")
-const {dsl, generate, loadLanguage} = require("..");
-const {grammar, seq, choice, prec, repeat, token} = dsl
+const Parser = require("tree-sitter");
+const { assert } = require("chai");
+const ARITHMETIC = require('./fixtures/arithmetic_language');
 
-describe("ASTNode", () => {
-  let document, language, rootNode, sumNode;
-
-  before(() => {
-    language = loadLanguage(generate(grammar({
-      name: "arithmetic",
-
-      rules: {
-        program: $ => $._expression,
-
-        _expression: $ => choice(
-          $.sum,
-          $.difference,
-          $.product,
-          $.quotient,
-          $.number,
-          $.variable
-        ),
-
-        sum: $ => prec.left(0, seq(
-          $._expression, "+", $._expression
-        )),
-
-        difference: $ => prec.left(0, seq(
-          $._expression, "-", $._expression
-        )),
-
-        product: $ => prec.left(1, seq(
-          $._expression, "*", $._expression
-        )),
-
-        quotient: $ => prec.left(1, seq(
-          $._expression, "/", $._expression
-        )),
-
-        number: $ => (/\d+/),
-
-        variable: $ => token(seq(
-          /[a-z]/,
-          repeat(choice(/\w/, "👍", "👎"))
-        )),
-      }
-    })));
-  });
+describe("Node", () => {
+  let parser;
 
   beforeEach(() => {
-    document = new Document()
-      .setLanguage(language)
-      .setInputString("x10 + 1000")
-    document.parse();
-    sumNode = document.rootNode.children[0];
-    assert.equal("sum", sumNode.type);
+    parser = new Parser().setLanguage(ARITHMETIC);
   });
 
   describe(".children", () => {
     it("returns an array of child nodes", () => {
-      assert.equal(1, document.rootNode.children.length)
+      const tree = parser.parse("x10 + 1000");
+      const sumNode = tree.rootNode.firstChild;
+      assert.equal(1, tree.rootNode.children.length);
       assert.deepEqual(
-        ['variable', '+', 'number'],
+        ["variable", "+", "number"],
         sumNode.children.map(child => child.type)
-      )
+      );
     });
   });
 
   describe(".namedChildren", () => {
     it("returns an array of named child nodes", () => {
-      assert.equal(1, document.rootNode.namedChildren.length)
+      const tree = parser.parse("x10 + 1000");
+      const sumNode = tree.rootNode.firstChild;
+      assert.equal(1, tree.rootNode.namedChildren.length);
       assert.deepEqual(
-        ['variable', 'number'],
+        ["variable", "number"],
         sumNode.namedChildren.map(child => child.type)
-      )
+      );
     });
   });
 
   describe(".startIndex and .endIndex", () => {
     it("returns the character index where the node starts/ends in the text", () => {
-      document.setInputString("a👍👎1 / b👎c👎").parse()
-      sumNode = document.rootNode.children[0];
+      const tree = parser.parse("a👍👎1 / b👎c👎");
+      const quotientNode = tree.rootNode.firstChild;
 
-      assert.equal(0, sumNode.startIndex)
-      assert.equal(15, sumNode.endIndex)
-      assert.deepEqual([0, 7, 9], sumNode.children.map(child => child.startIndex))
-      assert.deepEqual([6, 8, 15], sumNode.children.map(child => child.endIndex))
+      assert.equal(0, quotientNode.startIndex);
+      assert.equal(15, quotientNode.endIndex);
+      assert.deepEqual(
+        [0, 7, 9],
+        quotientNode.children.map(child => child.startIndex)
+      );
+      assert.deepEqual(
+        [6, 8, 15],
+        quotientNode.children.map(child => child.endIndex)
+      );
     });
   });
 
   describe(".startPosition and .endPosition", () => {
     it("returns the row and column where the node starts/ends in the text", () => {
-      assert.deepEqual({row: 0, column: 0}, sumNode.startPosition)
-      assert.deepEqual({row: 0, column: 10}, sumNode.endPosition)
-      assert.deepEqual([
-        {row: 0, column: 0},
-        {row: 0, column: 4},
-        {row: 0, column: 6}
-      ], sumNode.children.map(child => child.startPosition))
-      assert.deepEqual([
-        {row: 0, column: 3},
-        {row: 0, column: 5},
-        {row: 0, column: 10}
-      ], sumNode.children.map(child => child.endPosition))
+      const tree = parser.parse("x10 + 1000");
+      const sumNode = tree.rootNode.firstChild;
+      assert.equal("sum", sumNode.type);
+
+      assert.deepEqual({ row: 0, column: 0 }, sumNode.startPosition);
+      assert.deepEqual({ row: 0, column: 10 }, sumNode.endPosition);
+      assert.deepEqual(
+        [{ row: 0, column: 0 }, { row: 0, column: 4 }, { row: 0, column: 6 }],
+        sumNode.children.map(child => child.startPosition)
+      );
+      assert.deepEqual(
+        [{ row: 0, column: 3 }, { row: 0, column: 5 }, { row: 0, column: 10 }],
+        sumNode.children.map(child => child.endPosition)
+      );
     });
 
     it("handles characters that occupy two UTF16 code units", () => {
-      document.setInputString("a👍👎1 /\n b👎c👎").parse()
-      sumNode = document.rootNode.children[0];
-      assert.deepEqual([
-        [{row: 0, column: 0}, {row: 0, column: 6}],
-        [{row: 0, column: 7}, {row: 0, column: 8}],
-        [{row: 1, column: 1}, {row: 1, column: 7}],
-      ], sumNode.children.map(child => [child.startPosition, child.endPosition]))
+      const tree = parser.parse("a👍👎1 /\n b👎c👎");
+      const sumNode = tree.rootNode.firstChild;
+      assert.deepEqual(
+        [
+          [{ row: 0, column: 0 }, { row: 0, column: 6 }],
+          [{ row: 0, column: 7 }, { row: 0, column: 8 }],
+          [{ row: 1, column: 1 }, { row: 1, column: 7 }]
+        ],
+        sumNode.children.map(child => [child.startPosition, child.endPosition])
+      );
     });
   });
 
   describe(".parent", () => {
     it("returns the node's parent", () => {
-      let variableNode = sumNode.children[0]
-      assert.deepEqual(sumNode, variableNode.parent)
-      assert.deepEqual(document.rootNode, sumNode.parent)
+      const tree = parser.parse("x10 + 1000");
+      const sumNode = tree.rootNode.firstChild;
+      const variableNode = sumNode.firstChild;
+      assert.deepEqual(sumNode, variableNode.parent);
+      assert.deepEqual(tree.rootNode, sumNode.parent);
     });
   });
 
   describe(".nextSibling and .previousSibling", () => {
     it("returns the node's next and previous sibling", () => {
-      assert.deepEqual(sumNode.children[1], sumNode.children[0].nextSibling)
-      assert.deepEqual(sumNode.children[2], sumNode.children[1].nextSibling)
-      assert.deepEqual(sumNode.children[0], sumNode.children[1].previousSibling)
-      assert.deepEqual(sumNode.children[1], sumNode.children[2].previousSibling)
+      const tree = parser.parse("x10 + 1000");
+      const sumNode = tree.rootNode.firstChild;
+      assert.deepEqual(sumNode.children[1], sumNode.children[0].nextSibling);
+      assert.deepEqual(sumNode.children[2], sumNode.children[1].nextSibling);
+      assert.deepEqual(
+        sumNode.children[0],
+        sumNode.children[1].previousSibling
+      );
+      assert.deepEqual(
+        sumNode.children[1],
+        sumNode.children[2].previousSibling
+      );
     });
   });
 
   describe(".nextNamedSibling and .previousNamedSibling", () => {
     it("returns the node's next and previous named sibling", () => {
-      assert.deepEqual(sumNode.namedChildren[1], sumNode.namedChildren[0].nextNamedSibling)
-      assert.deepEqual(sumNode.namedChildren[0], sumNode.namedChildren[1].previousNamedSibling)
+      const tree = parser.parse("x10 + 1000");
+      const sumNode = tree.rootNode.firstChild;
+      assert.deepEqual(
+        sumNode.namedChildren[1],
+        sumNode.namedChildren[0].nextNamedSibling
+      );
+      assert.deepEqual(
+        sumNode.namedChildren[0],
+        sumNode.namedChildren[1].previousNamedSibling
+      );
     });
   });
 
   describe(".descendantForIndex(min, max)", () => {
     it("returns the smallest node that spans the given range", () => {
-      assert.equal('variable', sumNode.descendantForIndex(1, 2).type)
-      assert.equal('+', sumNode.descendantForIndex(4, 4).type)
+      const tree = parser.parse("x10 + 1000");
+      const sumNode = tree.rootNode.firstChild;
+      assert.equal("variable", sumNode.descendantForIndex(1, 2).type);
+      assert.equal("+", sumNode.descendantForIndex(4, 4).type);
 
       assert.throws(() => {
-        sumNode.descendantForIndex(1, {})
-      }, /Character index must be a number/)
+        sumNode.descendantForIndex(1, {});
+      }, /Character index must be a number/);
 
       assert.throws(() => {
-        sumNode.descendantForIndex()
-      }, /Must provide 1 or 2 character indices/)
+        sumNode.descendantForIndex();
+      }, /Must provide 1 or 2 character indices/);
     });
   });
 
   describe(".namedDescendantForIndex", () => {
     it("returns the smallest node that spans the given range", () => {
-      assert.equal('variable', sumNode.descendantForIndex(1, 2).type)
-      assert.equal('+', sumNode.descendantForIndex(4, 4).type)
+      const tree = parser.parse("x10 + 1000");
+      const sumNode = tree.rootNode.firstChild;
+      assert.equal("variable", sumNode.descendantForIndex(1, 2).type);
+      assert.equal("+", sumNode.descendantForIndex(4, 4).type);
     });
   });
 
   describe(".descendantForPosition(min, max)", () => {
     it("returns the smallest node that spans the given range", () => {
+      const tree = parser.parse("x10 + 1000");
+      const sumNode = tree.rootNode.firstChild;
+
       assert.equal(
-        'variable',
+        "variable",
         sumNode.descendantForPosition(
-          {row: 0, column: 1},
-          {row: 0, column: 2}
+          { row: 0, column: 1 },
+          { row: 0, column: 2 }
         ).type
       );
 
       assert.equal(
-        '+',
-        sumNode.descendantForPosition(
-          {row: 0, column: 4}
-        ).type
+        "+",
+        sumNode.descendantForPosition({ row: 0, column: 4 }).type
       );
 
       assert.throws(() => {
-        sumNode.descendantForPosition(1, {})
-      }, /Point.row must be a number/)
+        sumNode.descendantForPosition(1, {});
+      }, /Point.row must be a number/);
 
       assert.throws(() => {
-        sumNode.descendantForPosition()
-      }, /Must provide 1 or 2 points/)
+        sumNode.descendantForPosition();
+      }, /Must provide 1 or 2 points/);
     });
   });
 
   describe(".namedDescendantForPosition(min, max)", () => {
     it("returns the smallest named node that spans the given range", () => {
+      const tree = parser.parse("x10 + 1000");
+      const sumNode = tree.rootNode.firstChild;
+
       assert.equal(
-        'variable',
+        "variable",
         sumNode.namedDescendantForPosition(
-          {row: 0, column: 1},
-          {row: 0, column: 2}
+          { row: 0, column: 1 },
+          { row: 0, column: 2 }
         ).type
       );
 
       assert.equal(
-        'sum',
-        sumNode.namedDescendantForPosition(
-          {row: 0, column: 4}
-        ).type
+        "sum",
+        sumNode.namedDescendantForPosition({ row: 0, column: 4 }).type
       );
     });
   });
 
   describe(".firstChildForIndex(index)", () => {
     it("returns the first child that extends beyond the given index", () => {
-      assert.equal('variable', sumNode.firstChildForIndex(0).type);
-      assert.equal('variable', sumNode.firstChildForIndex(1).type);
-      assert.equal('+', sumNode.firstChildForIndex(3).type);
-      assert.equal('number', sumNode.firstChildForIndex(5).type);
+      const tree = parser.parse("x10 + 1000");
+      const sumNode = tree.rootNode.firstChild;
+
+      assert.equal("variable", sumNode.firstChildForIndex(0).type);
+      assert.equal("variable", sumNode.firstChildForIndex(1).type);
+      assert.equal("+", sumNode.firstChildForIndex(3).type);
+      assert.equal("number", sumNode.firstChildForIndex(5).type);
     });
   });
 
   describe(".firstNamedChildForIndex(index)", () => {
     it("returns the first child that extends beyond the given index", () => {
-      assert.equal('variable', sumNode.firstNamedChildForIndex(0).type);
-      assert.equal('variable', sumNode.firstNamedChildForIndex(1).type);
-      assert.equal('number', sumNode.firstNamedChildForIndex(3).type);
+      const tree = parser.parse("x10 + 1000");
+      const sumNode = tree.rootNode.firstChild;
+
+      assert.equal("variable", sumNode.firstNamedChildForIndex(0).type);
+      assert.equal("variable", sumNode.firstNamedChildForIndex(1).type);
+      assert.equal("number", sumNode.firstNamedChildForIndex(3).type);
     });
   });
 
-  describe('.hasError()', () => {
-    it('returns true if the node contains an error', () => {
-      document.setInputString('1 + 2 * * 3')
-      document.parse()
-      const node = document.rootNode
-      assert.equal(node.toString(), '(program (sum (number) (product (number) (ERROR) (number))))')
+  describe(".hasError()", () => {
+    it("returns true if the node contains an error", () => {
+      const tree = parser.parse("1 + 2 * * 3");
+      const node = tree.rootNode;
+      assert.equal(
+        node.toString(),
+        "(program (sum (number) (product (number) (ERROR) (number))))"
+      );
 
-      const sum = node.firstChild
-      assert(sum.hasError())
-      assert(!sum.children[0].hasError())
-      assert(!sum.children[1].hasError())
-      assert(sum.children[2].hasError())
+      const sum = node.firstChild;
+      assert(sum.hasError());
+      assert(!sum.children[0].hasError());
+      assert(!sum.children[1].hasError());
+      assert(sum.children[2].hasError());
     });
   });
 
-  describe('.isMissing()', () => {
-    it('returns true if the node is missing from the source and was inserted via error recovery', () => {
-      document.setInputString('2 +')
-      document.parse()
-      const node = document.rootNode
-      assert.equal(node.toString(), '(program (sum (number) (MISSING)))')
+  describe(".isMissing()", () => {
+    it("returns true if the node is missing from the source and was inserted via error recovery", () => {
+      const tree = parser.parse("2 +");
+      const node = tree.rootNode;
+      assert.equal(node.toString(), "(program (sum (number) (MISSING)))");
 
-      const sum = node.firstChild
-      assert(sum.hasError())
-      assert(!sum.children[0].isMissing())
-      assert(!sum.children[1].isMissing())
-      assert(sum.children[2].isMissing())
+      const sum = node.firstChild;
+      assert(sum.hasError());
+      assert(!sum.children[0].isMissing());
+      assert(!sum.children[1].isMissing());
+      assert(sum.children[2].isMissing());
     });
   });
 });
