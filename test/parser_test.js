@@ -2,6 +2,7 @@ const Parser = require("tree-sitter");
 const { assert } = require("chai");
 const { dsl, generate, loadLanguage } = require("..");
 const { choice, prec, repeat, seq, grammar } = dsl;
+const {TextBuffer} = require('superstring');
 
 describe("Parser", () => {
   let parser, language;
@@ -85,7 +86,7 @@ describe("Parser", () => {
       it("raises an exception", () => {
         assert.throws(
           () => parser.setLogger("5"),
-          /Debug callback must .* function .* falsy/
+          /Logger callback must .* function .* falsy/
         );
       });
     });
@@ -206,5 +207,90 @@ describe("Parser", () => {
       assert.equal(tree.rootNode.type, "sentence");
       assert.equal(tree.rootNode.children.length, wordCount);
     });
+  });
+
+  describe('.parseTextBuffer', () => {
+    beforeEach(() => {
+      parser.setLanguage(language);
+    });
+
+    it('parses the contents of the given text buffer asynchronously', async () => {
+      const repeatCount = 4;
+      const wordCount = 4 * repeatCount;
+      const repeatedString = "first-word second-word αβ αβδ ";
+      const buffer = new TextBuffer(repeatedString.repeat(repeatCount))
+
+      const tree = await parser.parseTextBuffer(buffer);
+      assert.equal(tree.rootNode.type, "sentence");
+      assert.equal(tree.rootNode.children.length, wordCount);
+
+      const editPosition = repeatedString.length * 2;
+      buffer.setTextInRange(
+        {
+          start: {row: 0, column: editPosition},
+          end: {row: 0, column: editPosition}
+        },
+        'αβδ '
+      );
+      tree.edit({
+        startIndex: editPosition,
+        lengthAdded: 4,
+        lengthRemoved: 0,
+        startPosition: {row: 0, column: editPosition},
+        extentAdded: {row: 0, column: 4},
+        extentRemoved: {row: 0, column: 0}
+      });
+
+      const newTree = await parser.parseTextBuffer(buffer, tree);
+      assert.equal(newTree.rootNode.type, "sentence");
+      assert.equal(newTree.rootNode.children.length, wordCount + 1);
+    });
+
+    it('does not allow the parser to be mutated while parsing', async () => {
+      const buffer = new TextBuffer('first-word second-word first-word second-word');
+      const treePromise = parser.parseTextBuffer(buffer);
+
+      assert.throws(() => {
+        parser.parse('first-word');
+      }, /Parser is in use/);
+
+      assert.throws(() => {
+        parser.setLanguage(language);
+      }, /Parser is in use/);
+
+      assert.throws(() => {
+        parser.printDotGraphs(true);
+      }, /Parser is in use/);
+
+      const tree = await treePromise;
+      assert.equal(tree.rootNode.type, "sentence");
+      assert.equal(tree.rootNode.children.length, 4);
+
+      parser.parse('first-word');
+      parser.setLanguage(language);
+      parser.printDotGraphs(true);
+    });
+
+    it('throws an error if the given object is not a TextBuffer', () => {
+      assert.throws(() => {
+        parser.parseTextBuffer({});
+      });
+    });
+
+    it('does not try to call JS logger functions when parsing asynchronously', async () => {
+      const messages = [];
+      parser.setLogger(message => messages.push(message));
+
+      parser.parse('first-word second-word');
+      assert(messages.length > 0);
+      messages.length = 0;
+
+      const buffer = new TextBuffer('first-word second-word');
+      await parser.parseTextBuffer(buffer);
+      assert(messages.length === 0);
+
+      parser.parse('first-word second-word');
+      assert(messages.length > 0);
+    })
   });
 });

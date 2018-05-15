@@ -28,12 +28,13 @@
     "nan": "^2.0.0",
     "prettier": "^1.12.1",
     "temp": "0.8.x",
-    "tree-sitter": "^0.12.0",
+    "tree-sitter": "^0.12.1-0",
     "vows": "0.7.x"
   },
   "devDependencies": {
     "chai": "3.5.x",
     "jsonschema": "^1.0.3",
-    "mocha": "2.4.x"
+    "mocha": "2.4.x",
+    "superstring": "^2.3.1-0"
   }
 }
