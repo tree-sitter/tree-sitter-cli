@@ -281,16 +281,35 @@ describe("Parser", () => {
       const messages = [];
       parser.setLogger(message => messages.push(message));
 
-      parser.parse('first-word second-word');
+      const tree1 = parser.parse('first-word second-word');
       assert(messages.length > 0);
       messages.length = 0;
 
       const buffer = new TextBuffer('first-word second-word');
-      await parser.parseTextBuffer(buffer);
+      const tree2 = await parser.parseTextBuffer(buffer);
       assert(messages.length === 0);
 
-      parser.parse('first-word second-word');
+      const tree3 = parser.parseTextBufferSync(buffer);
       assert(messages.length > 0);
+
+      assert.equal(tree2.rootNode.toString(), tree1.rootNode.toString())
+      assert.equal(tree3.rootNode.toString(), tree1.rootNode.toString())
+    })
+  });
+
+  describe('.parseTextBufferSync', () => {
+    it('parses the contents of the given text buffer synchronously', () => {
+      parser.setLanguage(language);
+      const buffer = new TextBuffer('αβ αβδ')
+      const tree = parser.parseTextBufferSync(buffer);
+      assert.equal(tree.rootNode.type, "sentence");
+      assert.equal(tree.rootNode.children.length, 2);
+    });
+
+    it('returns null if no language has been set', () => {
+      const buffer = new TextBuffer('αβ αβδ')
+      const tree = parser.parseTextBufferSync(buffer);
+      assert.equal(tree, null);
     })
   });
 });

@@ -275,7 +275,17 @@ describe("Tree", () => {
       assert.deepEqual(cursor.startIndex, 8);
       assert.deepEqual(cursor.endIndex, 13);
 
+      const childIndex = cursor.gotoFirstChildForIndex(12);
+      assert.equal(childIndex, 2);
+      assert.equal(cursor.nodeType, 'variable');
+      assert.equal(cursor.nodeIsNamed, true);
+      assert.deepEqual(cursor.startPosition, {row: 0, column: 12});
+      assert.deepEqual(cursor.endPosition, {row: 0, column: 13});
+      assert.deepEqual(cursor.startIndex, 12);
+      assert.deepEqual(cursor.endIndex, 13);
+
       assert(!cursor.gotoNextSibling());
+      assert(cursor.gotoParent());
       assert(cursor.gotoParent());
       assert(cursor.gotoParent());
       assert(!cursor.gotoParent());
