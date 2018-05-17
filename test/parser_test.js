@@ -224,21 +224,18 @@ describe("Parser", () => {
       assert.equal(tree.rootNode.type, "sentence");
       assert.equal(tree.rootNode.children.length, wordCount);
 
-      const editPosition = repeatedString.length * 2;
+      const editIndex = repeatedString.length * 2;
       buffer.setTextInRange(
-        {
-          start: {row: 0, column: editPosition},
-          end: {row: 0, column: editPosition}
-        },
+        {start: {row: 0, column: editIndex}, end: {row: 0, column: editIndex}},
         'αβδ '
       );
       tree.edit({
-        startIndex: editPosition,
-        lengthAdded: 4,
-        lengthRemoved: 0,
-        startPosition: {row: 0, column: editPosition},
-        extentAdded: {row: 0, column: 4},
-        extentRemoved: {row: 0, column: 0}
+        startIndex: editIndex,
+        oldEndIndex: editIndex,
+        newEndIndex: editIndex + 4,
+        startPosition: {row: 0, column: editIndex},
+        oldEndPosition: {row: 0, column: editIndex},
+        newEndPosition: {row: 0, column: editIndex + 4}
       });
 
       const newTree = await parser.parseTextBuffer(buffer, tree);

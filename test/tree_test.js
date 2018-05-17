@@ -35,23 +35,26 @@ describe("Tree", () => {
 
     it("reports the ranges of text whose syntactic meaning has changed", () => {
       parser.setLanguage(language);
-      const tree1 = parser.parse("abcdefg + hij");
+
+      let sourceCode = "abcdefg + hij";
+      const tree1 = parser.parse(sourceCode);
 
       assert.equal(
         tree1.rootNode.toString(),
         "(expression (expression (variable)) (expression (variable)))"
       );
 
+      sourceCode = "abc + defg + hij";
       tree1.edit({
         startIndex: 2,
-        lengthAdded: 3,
-        lengthRemoved: 0,
+        oldEndIndex: 2,
+        newEndIndex: 5,
         startPosition: { row: 0, column: 2 },
-        extentAdded: { row: 0, column: 3 },
-        extentRemoved: { row: 0, column: 0 }
+        oldEndPosition: { row: 0, column: 2 },
+        newEndPosition: { row: 0, column: 5 }
       });
 
-      const tree2 = parser.parse("abc + defg + hij", tree1);
+      const tree2 = parser.parse(sourceCode, tree1);
       assert.equal(
         tree2.rootNode.toString(),
         "(expression (expression (expression (variable)) (expression (variable))) (expression (variable)))"
@@ -128,14 +131,17 @@ describe("Tree", () => {
 
     describe("when text is inserted", () => {
       it("updates the parse tree", () => {
+        const editIndex = "first-word ".length;
+        const insertedText = "first word ";
         input.text = "first-word first-word second-word first-word";
+
         tree.edit({
-          startIndex: "first-word ".length,
-          lengthAdded: "first-word ".length,
-          lengthRemoved: 0,
-          startPosition: { row: 0, column: "first-word ".length },
-          extentAdded: { row: 0, column: "first-word ".length },
-          extentRemoved: { row: 0, column: 0 }
+          startIndex: editIndex,
+          oldEndIndex: editIndex,
+          newEndIndex: editIndex + insertedText.length,
+          startPosition: { row: 0, column: editIndex },
+          oldEndPosition: { row: 0, column: editIndex },
+          newEndPosition: { row: 0, column: editIndex + insertedText.length }
         });
 
         tree = parser.parse(input, tree);
@@ -148,14 +154,17 @@ describe("Tree", () => {
 
     describe("when text is removed", () => {
       it("updates the parse tree", () => {
+        const editIndex = "first-word ".length;
+        const removedLength = "second-word ".length;
         input.text = "first-word first-word";
+
         tree.edit({
-          startIndex: "first-word ".length,
-          lengthAdded: 0,
-          lengthRemoved: "second-word ".length,
-          startPosition: { row: 0, column: "first-word ".length },
-          extentAdded: { row: 0, column: 0 },
-          extentRemoved: { row: 0, column: "second-word ".length }
+          startIndex: editIndex,
+          oldEndIndex: editIndex + removedLength,
+          newEndIndex: editIndex,
+          startPosition: { row: 0, column: editIndex },
+          oldEndPosition: { row: 0, column: editIndex + removedLength },
+          newEndPosition: { row: 0, column: editIndex }
         });
 
         tree = parser.parse(input, tree);
@@ -174,14 +183,17 @@ describe("Tree", () => {
       });
 
       it("updates the parse tree correctly", () => {
+        const editIndex = "αβ".length;
+        const insertedLength = "δ".length;
         input.text = "αβδ αβ αβ";
+
         tree.edit({
-          startIndex: 2,
-          lengthAdded: 1,
-          lengthRemoved: 0,
-          startPosition: { row: 0, column: 2 },
-          extentAdded: { row: 0, column: 1 },
-          extentRemoved: { row: 0, column: 0 }
+          startIndex: editIndex,
+          oldEndIndex: editIndex,
+          newEndIndex: editIndex + insertedLength,
+          startPosition: { row: 0, column: editIndex },
+          oldEndPosition: { row: 0, column: editIndex },
+          newEndPosition: { row: 0, column: editIndex + insertedLength }
         });
 
         tree = parser.parse(input, tree);
