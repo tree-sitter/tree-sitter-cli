@@ -2,6 +2,7 @@ const Parser = require("tree-sitter");
 const { assert } = require("chai");
 const { dsl, generate, loadLanguage } = require("..");
 const { choice, prec, repeat, seq, grammar } = dsl;
+const {TextBuffer} = require('superstring');
 
 describe("Parser", () => {
   let parser, language;
@@ -85,7 +86,7 @@ describe("Parser", () => {
       it("raises an exception", () => {
         assert.throws(
           () => parser.setLogger("5"),
-          /Debug callback must .* function .* falsy/
+          /Logger callback must .* function .* falsy/
         );
       });
     });
@@ -206,5 +207,106 @@ describe("Parser", () => {
       assert.equal(tree.rootNode.type, "sentence");
       assert.equal(tree.rootNode.children.length, wordCount);
     });
+  });
+
+  describe('.parseTextBuffer', () => {
+    beforeEach(() => {
+      parser.setLanguage(language);
+    });
+
+    it('parses the contents of the given text buffer asynchronously', async () => {
+      const repeatCount = 4;
+      const wordCount = 4 * repeatCount;
+      const repeatedString = "first-word second-word αβ αβδ ";
+      const buffer = new TextBuffer(repeatedString.repeat(repeatCount))
+
+      const tree = await parser.parseTextBuffer(buffer);
+      assert.equal(tree.rootNode.type, "sentence");
+      assert.equal(tree.rootNode.children.length, wordCount);
+
+      const editIndex = repeatedString.length * 2;
+      buffer.setTextInRange(
+        {start: {row: 0, column: editIndex}, end: {row: 0, column: editIndex}},
+        'αβδ '
+      );
+      tree.edit({
+        startIndex: editIndex,
+        oldEndIndex: editIndex,
+        newEndIndex: editIndex + 4,
+        startPosition: {row: 0, column: editIndex},
+        oldEndPosition: {row: 0, column: editIndex},
+        newEndPosition: {row: 0, column: editIndex + 4}
+      });
+
+      const newTree = await parser.parseTextBuffer(buffer, tree);
+      assert.equal(newTree.rootNode.type, "sentence");
+      assert.equal(newTree.rootNode.children.length, wordCount + 1);
+    });
+
+    it('does not allow the parser to be mutated while parsing', async () => {
+      const buffer = new TextBuffer('first-word second-word first-word second-word');
+      const treePromise = parser.parseTextBuffer(buffer);
+
+      assert.throws(() => {
+        parser.parse('first-word');
+      }, /Parser is in use/);
+
+      assert.throws(() => {
+        parser.setLanguage(language);
+      }, /Parser is in use/);
+
+      assert.throws(() => {
+        parser.printDotGraphs(true);
+      }, /Parser is in use/);
+
+      const tree = await treePromise;
+      assert.equal(tree.rootNode.type, "sentence");
+      assert.equal(tree.rootNode.children.length, 4);
+
+      parser.parse('first-word');
+      parser.setLanguage(language);
+      parser.printDotGraphs(true);
+    });
+
+    it('throws an error if the given object is not a TextBuffer', () => {
+      assert.throws(() => {
+        parser.parseTextBuffer({});
+      });
+    });
+
+    it('does not try to call JS logger functions when parsing asynchronously', async () => {
+      const messages = [];
+      parser.setLogger(message => messages.push(message));
+
+      const tree1 = parser.parse('first-word second-word');
+      assert(messages.length > 0);
+      messages.length = 0;
+
+      const buffer = new TextBuffer('first-word second-word');
+      const tree2 = await parser.parseTextBuffer(buffer);
+      assert(messages.length === 0);
+
+      const tree3 = parser.parseTextBufferSync(buffer);
+      assert(messages.length > 0);
+
+      assert.equal(tree2.rootNode.toString(), tree1.rootNode.toString())
+      assert.equal(tree3.rootNode.toString(), tree1.rootNode.toString())
+    })
+  });
+
+  describe('.parseTextBufferSync', () => {
+    it('parses the contents of the given text buffer synchronously', () => {
+      parser.setLanguage(language);
+      const buffer = new TextBuffer('αβ αβδ')
+      const tree = parser.parseTextBufferSync(buffer);
+      assert.equal(tree.rootNode.type, "sentence");
+      assert.equal(tree.rootNode.children.length, 2);
+    });
+
+    it('returns null if no language has been set', () => {
+      const buffer = new TextBuffer('αβ αβδ')
+      const tree = parser.parseTextBufferSync(buffer);
+      assert.equal(tree, null);
+    })
   });
 });
