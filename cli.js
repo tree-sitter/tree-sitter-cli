@@ -27,10 +27,15 @@ switch (subcommand) {
         "  src/parser.c     - the parser",
         "  src/binding.cc   - the C++ node.js binding for the parser",
         "  binding.gyp      - the build configuration file for the node.js binding",
+        "",
+        "Arguments",
+        "  --debug, -d      - Log to stderr",
+        "  --profile, -P    - Render a flame graph of the parse performance (requires sudo)",
       ]);
 
     require("./lib/cli/generate")({
       profile: argv.profile || argv.P,
+      debug: argv.debug || argv.d
     }, process.exit);
     break;
 
