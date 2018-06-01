@@ -15,8 +15,8 @@ describe("Node", () => {
       const sumNode = tree.rootNode.firstChild;
       assert.equal(1, tree.rootNode.children.length);
       assert.deepEqual(
-        ["variable", "+", "number"],
-        sumNode.children.map(child => child.type)
+        sumNode.children.map(child => child.type),
+        ["variable", "+", "number"]
       );
     });
   });
@@ -88,8 +88,8 @@ describe("Node", () => {
       const tree = parser.parse("x10 + 1000");
       const sumNode = tree.rootNode.firstChild;
       const variableNode = sumNode.firstChild;
-      assert.deepEqual(sumNode, variableNode.parent);
-      assert.deepEqual(tree.rootNode, sumNode.parent);
+      assert.equal(sumNode, variableNode.parent);
+      assert.equal(tree.rootNode, sumNode.parent);
     });
   });
 
@@ -97,13 +97,13 @@ describe("Node", () => {
     it("returns the node's next and previous sibling", () => {
       const tree = parser.parse("x10 + 1000");
       const sumNode = tree.rootNode.firstChild;
-      assert.deepEqual(sumNode.children[1], sumNode.children[0].nextSibling);
-      assert.deepEqual(sumNode.children[2], sumNode.children[1].nextSibling);
-      assert.deepEqual(
+      assert.equal(sumNode.children[1], sumNode.children[0].nextSibling);
+      assert.equal(sumNode.children[2], sumNode.children[1].nextSibling);
+      assert.equal(
         sumNode.children[0],
         sumNode.children[1].previousSibling
       );
-      assert.deepEqual(
+      assert.equal(
         sumNode.children[1],
         sumNode.children[2].previousSibling
       );
@@ -114,11 +114,11 @@ describe("Node", () => {
     it("returns the node's next and previous named sibling", () => {
       const tree = parser.parse("x10 + 1000");
       const sumNode = tree.rootNode.firstChild;
-      assert.deepEqual(
+      assert.equal(
         sumNode.namedChildren[1],
         sumNode.namedChildren[0].nextNamedSibling
       );
-      assert.deepEqual(
+      assert.equal(
         sumNode.namedChildren[0],
         sumNode.namedChildren[1].previousNamedSibling
       );
@@ -138,7 +138,7 @@ describe("Node", () => {
 
       assert.throws(() => {
         sumNode.descendantForIndex();
-      }, /Must provide 1 or 2 character indices/);
+      }, /Character index must be a number/);
     });
   });
 
@@ -175,7 +175,7 @@ describe("Node", () => {
 
       assert.throws(() => {
         sumNode.descendantForPosition();
-      }, /Must provide 1 or 2 points/);
+      }, /Point must be a .* object/);
     });
   });
 
