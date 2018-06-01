@@ -205,7 +205,7 @@ describe("Parser", () => {
 
       const tree = parser.parse(inputString);
       assert.equal(tree.rootNode.type, "sentence");
-      assert.equal(tree.rootNode.children.length, wordCount);
+      assert.equal(tree.rootNode.childCount, wordCount);
     });
   });
 
