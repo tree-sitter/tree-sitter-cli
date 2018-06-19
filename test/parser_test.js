@@ -51,9 +51,7 @@ describe("Parser", () => {
     beforeEach(() => {
       debugMessages = [];
       parser.setLanguage(language);
-      parser.setLogger((msg, params) => {
-        debugMessages.push(msg);
-      });
+      parser.setLogger((message) => debugMessages.push(message));
     });
 
     it("calls the given callback for each parse event", () => {
@@ -131,70 +129,29 @@ describe("Parser", () => {
     it("reads from the given input", () => {
       parser.setLanguage(language);
 
-      const tree = parser.parse({
-        read: function() {
-          return ["first", "-", "word", " ", "second", "-", "word", ""][
-            this._readIndex++
-          ];
-        },
-
-        seek: function() {},
-
-        _readIndex: 0
-      });
+      const parts = ["first", "-", "word", " ", "second", "-", "word", ""];
+      const tree = parser.parse(() => parts.shift());
 
       assert.equal("(sentence (word1) (word2))", tree.rootNode.toString());
     });
 
-    describe("when the input.read() returns something other than a string", () => {
+    describe("when the input callback returns something other than a string", () => {
       it("stops reading", () => {
         parser.setLanguage(language);
-        const input = {
-          read: function() {
-            return ["first", "-", "word", {}, "second-word", " "][
-              this._readIndex++
-            ];
-          },
 
-          seek: () => 0,
-
-          _readIndex: 0
-        };
-        const tree = parser.parse(input);
+        const parts = ["first", "-", "word", {}, "second-word", " "];
+        const tree = parser.parse(() => parts.shift());
 
         assert.equal("(sentence (word1))", tree.rootNode.toString());
-        assert.equal(4, input._readIndex);
+        assert.equal(parts.length, 2);
       });
     });
 
-    describe("when the given input is not an object", () => {
+    describe("when the given input is not a function", () => {
       it("throws an exception", () => {
-        assert.throws(() => parser.parse(null), /Input.*object/);
-        assert.throws(() => parser.parse(5), /Input.*object/);
-      });
-    });
-
-    describe("when the given input does not implement ::seek(n)", () => {
-      it("throws an exception", () => {
-        assert.throws(
-          () =>
-            parser.parse({
-              read: () => ""
-            }),
-          /Input.*implement.*seek/
-        );
-      });
-    });
-
-    describe("when the given input does not implement ::read()", () => {
-      it("throws an exception", () => {
-        assert.throws(
-          () =>
-            parser.parse({
-              seek: n => 0
-            }),
-          /Input.*implement.*read/
-        );
+        assert.throws(() => parser.parse(null), /Input.*function/);
+        assert.throws(() => parser.parse(5), /Input.*function/);
+        assert.throws(() => parser.parse({}), /Input.*function/);
       });
     });
 

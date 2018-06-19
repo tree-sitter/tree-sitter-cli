@@ -80,7 +80,7 @@ describe("Tree", () => {
   });
 
   describe(".edit", () => {
-    let language, input, tree;
+    let language, input, inputString, tree;
 
     before(() => {
       language = loadLanguage(
@@ -100,29 +100,10 @@ describe("Tree", () => {
     });
 
     beforeEach(() => {
-      input = {
-        offset: 0,
-        chunkSize: 3,
-        text: "first-word second-word first-word",
-
-        seek(offset, position) {
-          assert.deepEqual(position, { row: 0, column: offset });
-          this.offset = offset;
-        },
-
-        read: function() {
-          let result = this.text.slice(
-            this.offset,
-            this.offset + this.chunkSize
-          );
-          this.offset += this.chunkSize;
-          return result;
-        }
-      };
-
+      inputString = "first-word second-word first-word";
+      input = (offset) => inputString.substr(offset, 3);
       parser.setLanguage(language);
       tree = parser.parse(input);
-
       assert.equal(
         "(sentence (word1) (word2) (word1))",
         tree.rootNode.toString()
@@ -133,7 +114,7 @@ describe("Tree", () => {
       it("updates the parse tree", () => {
         const editIndex = "first-word ".length;
         const insertedText = "first word ";
-        input.text = "first-word first-word second-word first-word";
+        inputString = "first-word first-word second-word first-word";
 
         tree.edit({
           startIndex: editIndex,
@@ -156,7 +137,7 @@ describe("Tree", () => {
       it("updates the parse tree", () => {
         const editIndex = "first-word ".length;
         const removedLength = "second-word ".length;
-        input.text = "first-word first-word";
+        inputString = "first-word first-word";
 
         tree.edit({
           startIndex: editIndex,
@@ -174,7 +155,7 @@ describe("Tree", () => {
 
     describe("when the text contains non-ascii characters", () => {
       beforeEach(() => {
-        input.text = "αβ αβ αβ";
+        inputString = "αβ αβ αβ";
         tree = parser.parse(input);
         assert.equal(
           tree.rootNode.toString(),
@@ -185,7 +166,7 @@ describe("Tree", () => {
       it("updates the parse tree correctly", () => {
         const editIndex = "αβ".length;
         const insertedLength = "δ".length;
-        input.text = "αβδ αβ αβ";
+        inputString = "αβδ αβ αβ";
 
         tree.edit({
           startIndex: editIndex,
