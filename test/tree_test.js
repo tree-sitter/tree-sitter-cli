@@ -63,8 +63,10 @@ describe("Tree", () => {
       const ranges = tree1.getChangedRanges(tree2);
       assert.deepEqual(ranges, [
         {
-          start: { row: 0, column: 0 },
-          end: { row: 0, column: "abc + defg".length }
+          startIndex: 0,
+          endIndex: "abc + defg".length,
+          startPosition: { row: 0, column: 0 },
+          endPosition: { row: 0, column: "abc + defg".length }
         }
       ]);
     });

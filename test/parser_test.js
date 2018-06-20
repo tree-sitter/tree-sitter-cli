@@ -3,6 +3,7 @@ const { assert } = require("chai");
 const { dsl, generate, loadLanguage } = require("..");
 const { choice, prec, repeat, seq, grammar } = dsl;
 const {TextBuffer} = require('superstring');
+const ARITHMETIC = require('./fixtures/arithmetic_language');
 
 describe("Parser", () => {
   let parser, language;
@@ -164,6 +165,37 @@ describe("Parser", () => {
       assert.equal(tree.rootNode.type, "sentence");
       assert.equal(tree.rootNode.childCount, wordCount);
     });
+
+    describe('when the `includedRanges` option is given', () => {
+      it('parses the text within those ranges of the string', () => {
+        const sourceCode = "const expression = `1 + a${c}b * 4`";
+        const exprStart = sourceCode.indexOf('1');
+        const interpStart = sourceCode.indexOf('${');
+        const interpEnd = sourceCode.indexOf('}') + 1;
+        const exprEnd = sourceCode.lastIndexOf('`');
+
+        parser.setLanguage(ARITHMETIC);
+
+        const tree = parser.parse(sourceCode, null, {
+          includedRanges: [
+            {
+              startIndex: exprStart,
+              endIndex: interpStart,
+              startPosition: {row: 0, column: exprStart},
+              endPosition: {row: 0, column: interpStart}
+            },
+            {
+              startIndex: interpEnd,
+              endIndex: exprEnd,
+              startPosition: {row: 0, column: interpEnd},
+              endPosition: {row: 0, column: exprEnd}
+            },
+          ]
+        });
+
+        assert.equal(tree.rootNode.toString(), '(program (sum (number) (product (variable) (number))))');
+      })
+    })
   });
 
   describe('.parseTextBuffer', () => {
@@ -248,6 +280,37 @@ describe("Parser", () => {
 
       assert.equal(tree2.rootNode.toString(), tree1.rootNode.toString())
       assert.equal(tree3.rootNode.toString(), tree1.rootNode.toString())
+    })
+
+    describe('when the `includedRanges` option is given', () => {
+      it('parses the text within those ranges of the string', async () => {
+        const sourceCode = "const expression = `1 + a${c}b * 4`";
+        const exprStart = sourceCode.indexOf('1');
+        const interpStart = sourceCode.indexOf('${');
+        const interpEnd = sourceCode.indexOf('}') + 1;
+        const exprEnd = sourceCode.lastIndexOf('`');
+
+        parser.setLanguage(ARITHMETIC);
+
+        const tree = await parser.parseTextBuffer(new TextBuffer(sourceCode), null, {
+          includedRanges: [
+            {
+              startIndex: exprStart,
+              endIndex: interpStart,
+              startPosition: {row: 0, column: exprStart},
+              endPosition: {row: 0, column: interpStart}
+            },
+            {
+              startIndex: interpEnd,
+              endIndex: exprEnd,
+              startPosition: {row: 0, column: interpEnd},
+              endPosition: {row: 0, column: exprEnd}
+            },
+          ]
+        });
+
+        assert.equal(tree.rootNode.toString(), '(program (sum (number) (product (variable) (number))))');
+      })
     })
   });
 
