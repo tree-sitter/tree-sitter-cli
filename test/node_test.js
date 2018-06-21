@@ -199,6 +199,42 @@ describe("Node", () => {
     });
   });
 
+  describe('.descendantsOfType(type, min, max)', () => {
+    it('finds all of the descendants of the given type in the given range', () => {
+      const tree = parser.parse("a + 1 * b * 2 + c + 3");
+      const outerSum = tree.rootNode.firstChild;
+      let descendants = outerSum.descendantsOfType('number', {row: 0, column: 2}, {row: 0, column: 15})
+      assert.deepEqual(
+        descendants.map(node => node.startIndex),
+        [4, 12]
+      );
+
+      descendants = outerSum.descendantsOfType('variable', {row: 0, column: 2}, {row: 0, column: 15})
+      assert.deepEqual(
+        descendants.map(node => node.startIndex),
+        [8]
+      );
+
+      descendants = outerSum.descendantsOfType('variable', {row: 0, column: 0}, {row: 0, column: 30})
+      assert.deepEqual(
+        descendants.map(node => node.startIndex),
+        [0, 8, 16]
+      );
+
+      descendants = outerSum.descendantsOfType('number', {row: 0, column: 0}, {row: 0, column: 30})
+      assert.deepEqual(
+        descendants.map(node => node.startIndex),
+        [4, 12, 20]
+      );
+
+      descendants = outerSum.firstChild.descendantsOfType('number', {row: 0, column: 0}, {row: 0, column: 30})
+      assert.deepEqual(
+        descendants.map(node => node.startIndex),
+        [4, 12]
+      );
+    })
+  })
+
   describe(".firstChildForIndex(index)", () => {
     it("returns the first child that extends beyond the given index", () => {
       const tree = parser.parse("x10 + 1000");
