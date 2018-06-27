@@ -11,76 +11,6 @@ describe("Tree", () => {
     parser = new Parser();
   });
 
-  describe(".getChangedRanges()", () => {
-    let language
-
-    before(() => {
-      language = loadLanguage(
-        generate(
-          grammar({
-            name: "test2",
-            rules: {
-              expression: $ =>
-                choice(
-                  prec.left(seq($.expression, "+", $.expression)),
-                  $.variable
-                ),
-
-              variable: $ => /\w+/
-            }
-          })
-        )
-      );
-    });
-
-    it("reports the ranges of text whose syntactic meaning has changed", () => {
-      parser.setLanguage(language);
-
-      let sourceCode = "abcdefg + hij";
-      const tree1 = parser.parse(sourceCode);
-
-      assert.equal(
-        tree1.rootNode.toString(),
-        "(expression (expression (variable)) (expression (variable)))"
-      );
-
-      sourceCode = "abc + defg + hij";
-      tree1.edit({
-        startIndex: 2,
-        oldEndIndex: 2,
-        newEndIndex: 5,
-        startPosition: { row: 0, column: 2 },
-        oldEndPosition: { row: 0, column: 2 },
-        newEndPosition: { row: 0, column: 5 }
-      });
-
-      const tree2 = parser.parse(sourceCode, tree1);
-      assert.equal(
-        tree2.rootNode.toString(),
-        "(expression (expression (expression (variable)) (expression (variable))) (expression (variable)))"
-      );
-
-      const ranges = tree1.getChangedRanges(tree2);
-      assert.deepEqual(ranges, [
-        {
-          startIndex: 0,
-          endIndex: "abc + defg".length,
-          startPosition: { row: 0, column: 0 },
-          endPosition: { row: 0, column: "abc + defg".length }
-        }
-      ]);
-    });
-
-    it('throws an exception if the argument is not a tree', () => {
-      parser.setLanguage(language);
-      const tree1 = parser.parse("abcdefg + hij");
-
-      assert.throws(() => {
-        tree1.getChangedRanges({});
-      }, /Argument must be a tree/);
-    })
-  });
-
   describe(".edit", () => {
     let language, input, inputString, tree;
 
@@ -220,6 +150,76 @@ describe("Tree", () => {
         startPosition: {row: 0, column: 6},
         endPosition: {row: 0, column: 23},
       });
+    })
+  });
+
+  describe(".getChangedRanges()", () => {
+    let language
+
+    before(() => {
+      language = loadLanguage(
+        generate(
+          grammar({
+            name: "test2",
+            rules: {
+              expression: $ =>
+                choice(
+                  prec.left(seq($.expression, "+", $.expression)),
+                  $.variable
+                ),
+
+              variable: $ => /\w+/
+            }
+          })
+        )
+      );
+    });
+
+    it("reports the ranges of text whose syntactic meaning has changed", () => {
+      parser.setLanguage(language);
+
+      let sourceCode = "abcdefg + hij";
+      const tree1 = parser.parse(sourceCode);
+
+      assert.equal(
+        tree1.rootNode.toString(),
+        "(expression (expression (variable)) (expression (variable)))"
+      );
+
+      sourceCode = "abc + defg + hij";
+      tree1.edit({
+        startIndex: 2,
+        oldEndIndex: 2,
+        newEndIndex: 5,
+        startPosition: { row: 0, column: 2 },
+        oldEndPosition: { row: 0, column: 2 },
+        newEndPosition: { row: 0, column: 5 }
+      });
+
+      const tree2 = parser.parse(sourceCode, tree1);
+      assert.equal(
+        tree2.rootNode.toString(),
+        "(expression (expression (expression (variable)) (expression (variable))) (expression (variable)))"
+      );
+
+      const ranges = tree1.getChangedRanges(tree2);
+      assert.deepEqual(ranges, [
+        {
+          startIndex: 0,
+          endIndex: "abc + defg".length,
+          startPosition: { row: 0, column: 0 },
+          endPosition: { row: 0, column: "abc + defg".length }
+        }
+      ]);
+    });
+
+    it('throws an exception if the argument is not a tree', () => {
+      parser.setLanguage(language);
+      const tree1 = parser.parse("abcdefg + hij");
+
+      assert.throws(() => {
+        tree1.getChangedRanges({});
+      }, /Argument must be a tree/);
     })
   });
 
