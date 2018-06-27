@@ -188,6 +188,41 @@ describe("Tree", () => {
     });
   });
 
+  describe('.getEditedRange()', () => {
+    it('returns the range of tokens that have been edited', () => {
+      parser.setLanguage(ARITHMETIC);
+      const inputString = 'abc + def + ghi + jkl + mno';
+      const tree = parser.parse(inputString);
+
+      assert.equal(tree.getEditedRange(), null)
+
+      tree.edit({
+        startIndex: 7,
+        oldEndIndex: 7,
+        newEndIndex: 8,
+        startPosition: { row: 0, column: 7 },
+        oldEndPosition: { row: 0, column: 7 },
+        newEndPosition: { row: 0, column: 8 }
+      });
+
+      tree.edit({
+        startIndex: 21,
+        oldEndIndex: 21,
+        newEndIndex: 22,
+        startPosition: { row: 0, column: 21 },
+        oldEndPosition: { row: 0, column: 21 },
+        newEndPosition: { row: 0, column: 22 }
+      });
+
+      assert.deepEqual(tree.getEditedRange(), {
+        startIndex: 6,
+        endIndex: 23,
+        startPosition: {row: 0, column: 6},
+        endPosition: {row: 0, column: 23},
+      });
+    })
+  });
+
   describe(".walk()", () => {
     beforeEach(() => {
       parser.setLanguage(ARITHMETIC);
