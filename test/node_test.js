@@ -227,6 +227,12 @@ describe("Node", () => {
         [4, 12, 20]
       );
 
+      descendants = outerSum.descendantsOfType('number')
+      assert.deepEqual(
+        descendants.map(node => node.startIndex),
+        [4, 12, 20]
+      );
+
       descendants = outerSum.firstChild.descendantsOfType('number', {row: 0, column: 0}, {row: 0, column: 30})
       assert.deepEqual(
         descendants.map(node => node.startIndex),
