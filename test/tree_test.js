@@ -9,118 +9,71 @@ describe("Tree", () => {
 
   beforeEach(() => {
     parser = new Parser();
+    parser.setLanguage(ARITHMETIC)
   });
 
-  describe(".edit", () => {
-    let language, input, inputString, tree;
+  describe('.edit', () => {
+    let input, edit
 
-    before(() => {
-      language = loadLanguage(
-        generate(
-          grammar({
-            name: "test",
-            rules: {
-              sentence: $ => repeat(choice($.word1, $.word2, $.word3, $.word4)),
-              word1: $ => "first-word",
-              word2: $ => "second-word",
-              word3: $ => "αβ",
-              word4: $ => "αβδ"
-            }
-          })
-        )
-      );
-    });
+    it('updates the positions of existing nodes', () => {
+      input = 'abc + cde';
 
-    beforeEach(() => {
-      inputString = "first-word second-word first-word";
-      input = (offset) => inputString.substr(offset, 3);
-      parser.setLanguage(language);
       tree = parser.parse(input);
       assert.equal(
-        "(sentence (word1) (word2) (word1))",
-        tree.rootNode.toString()
+        tree.rootNode.toString(),
+        "(program (sum (variable) (variable)))"
+      );
+
+      let variableNode1 = tree.rootNode.firstChild.firstChild;
+      let variableNode2 = tree.rootNode.firstChild.lastChild;
+      assert.equal(variableNode1.startIndex, 0);
+      assert.equal(variableNode1.endIndex, 3);
+      assert.equal(variableNode2.startIndex, 6);
+      assert.equal(variableNode2.endIndex, 9);
+
+      ([input, edit] = spliceInput(input, input.indexOf('bc'), 0, ' * '));
+      assert.equal(input, 'a * bc + cde');
+
+      tree.edit(edit);
+      assert.equal(variableNode1.startIndex, 0);
+      assert.equal(variableNode1.endIndex, 6);
+      assert.equal(variableNode2.startIndex, 9);
+      assert.equal(variableNode2.endIndex, 12);
+
+      tree = parser.parse(input, tree);
+      assert.equal(
+        tree.rootNode.toString(),
+        "(program (sum (product (variable) (variable)) (variable)))"
       );
     });
 
-    describe("when text is inserted", () => {
-      it("updates the parse tree", () => {
-        const editIndex = "first-word ".length;
-        const insertedText = "first word ";
-        inputString = "first-word first-word second-word first-word";
+    it("handles non-ascii characters", () => {
+      input = 'αβδ + cde';
 
-        tree.edit({
-          startIndex: editIndex,
-          oldEndIndex: editIndex,
-          newEndIndex: editIndex + insertedText.length,
-          startPosition: { row: 0, column: editIndex },
-          oldEndPosition: { row: 0, column: editIndex },
-          newEndPosition: { row: 0, column: editIndex + insertedText.length }
-        });
+      tree = parser.parse(input);
+      assert.equal(
+        tree.rootNode.toString(),
+        "(program (sum (variable) (variable)))"
+      );
 
-        tree = parser.parse(input, tree);
-        assert.equal(
-          tree.rootNode.toString(),
-          "(sentence (word1) (word1) (word2) (word1))"
-        );
-      });
-    });
+      const variableNode = tree.rootNode.firstChild.lastChild;
 
-    describe("when text is removed", () => {
-      it("updates the parse tree", () => {
-        const editIndex = "first-word ".length;
-        const removedLength = "second-word ".length;
-        inputString = "first-word first-word";
+      ([input, edit] = spliceInput(input, input.indexOf('δ'), 0, '👍 * '));
+      assert.equal(input, 'αβ👍 * δ + cde');
 
-        tree.edit({
-          startIndex: editIndex,
-          oldEndIndex: editIndex + removedLength,
-          newEndIndex: editIndex,
-          startPosition: { row: 0, column: editIndex },
-          oldEndPosition: { row: 0, column: editIndex + removedLength },
-          newEndPosition: { row: 0, column: editIndex }
-        });
+      tree.edit(edit);
+      assert.equal(variableNode.startIndex, input.indexOf('cde'));
 
-        tree = parser.parse(input, tree);
-        assert.equal(tree.rootNode.toString(), "(sentence (word1) (word1))");
-      });
-    });
-
-    describe("when the text contains non-ascii characters", () => {
-      beforeEach(() => {
-        inputString = "αβ αβ αβ";
-        tree = parser.parse(input);
-        assert.equal(
-          tree.rootNode.toString(),
-          "(sentence (word3) (word3) (word3))"
-        );
-      });
-
-      it("updates the parse tree correctly", () => {
-        const editIndex = "αβ".length;
-        const insertedLength = "δ".length;
-        inputString = "αβδ αβ αβ";
-
-        tree.edit({
-          startIndex: editIndex,
-          oldEndIndex: editIndex,
-          newEndIndex: editIndex + insertedLength,
-          startPosition: { row: 0, column: editIndex },
-          oldEndPosition: { row: 0, column: editIndex },
-          newEndPosition: { row: 0, column: editIndex + insertedLength }
-        });
-
-        tree = parser.parse(input, tree);
-        assert.equal(
-          tree.rootNode.toString(),
-          "(sentence (word4) (word3) (word3))"
-        );
-      });
+      tree = parser.parse(input, tree);
+      assert.equal(
+        tree.rootNode.toString(),
+        "(program (sum (product (variable) (variable)) (variable)))"
+      );
     });
   });
 
   describe('.getEditedRange()', () => {
     it('returns the range of tokens that have been edited', () => {
-      parser.setLanguage(ARITHMETIC);
       const inputString = 'abc + def + ghi + jkl + mno';
       const tree = parser.parse(inputString);
 
@@ -224,10 +177,6 @@ describe("Tree", () => {
   });
 
   describe(".walk()", () => {
-    beforeEach(() => {
-      parser.setLanguage(ARITHMETIC);
-    });
-
     it('returns a cursor that can be used to walk the tree', () => {
       const tree = parser.parse('a * b + c / d');
 
@@ -322,3 +271,30 @@ describe("Tree", () => {
     });
   });
 });
+
+function spliceInput(input, startIndex, lengthRemoved, newText) {
+  const oldEndIndex = startIndex + lengthRemoved;
+  const newEndIndex = startIndex + newText.length;
+  const startPosition = getExtent(input.slice(0, startIndex));
+  const oldEndPosition = getExtent(input.slice(0, oldEndIndex));
+  input = input.slice(0, startIndex) + newText + input.slice(oldEndIndex);
+  const newEndPosition = getExtent(input.slice(0, newEndIndex));
+  return [
+    input,
+    {
+      startIndex, startPosition,
+      oldEndIndex, oldEndPosition,
+      newEndIndex, newEndPosition
+    }
+  ];
+}
+
+function getExtent(text) {
+  let row = 0
+  let index;
+  for (index = 0; index != -1; index = text.indexOf('\n', index)) {
+    index++
+    row++;
+  }
+  return {row, column: text.length - index};
+}

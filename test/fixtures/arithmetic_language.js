@@ -27,6 +27,9 @@ module.exports = loadLanguage(generate(grammar({
 
     number: $ => /\d+/,
 
-    variable: $ => token(seq(/[a-z]/, repeat(choice(/\w/, "👍", "👎"))))
+    variable: $ => token(seq(
+      choice(/[a-zα-ω]/, '👍', '👎'),
+      repeat(choice(/[a-zα-ω0-9]/, '👍', '👎')),
+    ))
   }
 })));
