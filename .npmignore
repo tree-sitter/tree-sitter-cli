@@ -4,11 +4,10 @@ out
 build
 *.xcodeproj
 
-/node-tree-sitter
-
-vendor/tree-sitter/*
-!vendor/tree-sitter/src
-!vendor/tree-sitter/include
-!vendor/tree-sitter/externals/utf8proc
+vendor/tree-sitter/**/*
+!vendor/tree-sitter/src/compiler/**/*
+!vendor/tree-sitter/include/**/*
+!vendor/tree-sitter/externals/utf8proc/*
+!vendor/tree-sitter/externals/json-parser/*
 !vendor/tree-sitter/project.gyp
 
