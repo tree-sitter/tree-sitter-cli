@@ -126,6 +126,28 @@ describe("Writing a grammar", () => {
         tree = parser.parse("ooo");
         assert.equal(tree.rootNode.toString(), "(the_rule)");
       });
+
+      it("throws if called with multiple arguments", () => {
+        let error = null;
+        try {
+          repeat('x', 'y');
+        } catch (e) {
+          error = e;
+        }
+        assert.propertyVal(error, 'message',
+          `repeat takes a single argument, but 2 were given. Did you mean to use seq()?`)        
+      });
+
+      it("throws if called with no arguments", () => {
+        let error = null;
+        try {
+          repeat();
+        } catch (e) {
+          error = e;
+        }
+        assert.propertyVal(error, 'message',
+          `repeat takes a single argument, but 0 were given. Did you mean to use blank()?`)
+      });
     });
 
     describe("sequence", () => {
