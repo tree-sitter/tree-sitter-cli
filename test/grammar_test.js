@@ -643,6 +643,42 @@ describe("Writing a grammar", () => {
       });
     });
 
+    describe("when the grammar has an invalid name", () => {
+      it("raises an error describing valid names", () => {
+        assert.throws(
+          () =>
+            grammar({
+              name: "hyphen-ated",
+              rules: {
+                the_rule: $ => blank()
+              }
+            }),
+            /Grammar.*name.*word/
+        );
+
+        assert.throws(
+          () =>
+            grammar({
+              name: "space ",
+              rules: {
+                the_rule: $ => blank()
+              }
+            }),
+            /Grammar.*name.*word/
+        );
+
+        assert.doesNotThrow(
+          () =>
+            grammar({
+              name: "a_A_8",
+              rules: {
+                the_rule: $ => blank()
+              }
+            })
+        );
+      });
+    });
+
     describe("when the grammar has no rules", () => {
       it("raises an error", () => {
         assert.throws(
