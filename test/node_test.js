@@ -94,6 +94,19 @@ describe("Node", () => {
     });
   });
 
+  describe('.child(), .firstChild, .lastChild', () => {
+    it('returns null when the node has no children', () => {
+      const tree = parser.parse("x10 + 1000");
+      const sumNode = tree.rootNode.firstChild;
+      const variableNode = sumNode.firstChild;
+      assert.equal(variableNode.firstChild, null);
+      assert.equal(variableNode.lastChild, null);
+      assert.equal(variableNode.firstNamedChild, null);
+      assert.equal(variableNode.lastNamedChild, null);
+      assert.equal(variableNode.child(1), null);
+    })
+  });
+
   describe(".nextSibling and .previousSibling", () => {
     it("returns the node's next and previous sibling", () => {
       const tree = parser.parse("x10 + 1000");
@@ -228,6 +241,16 @@ describe("Node", () => {
         [4, 12, 20]
       );
 
+      descendants = outerSum.descendantsOfType(
+        ['variable', 'number'],
+        {row: 0, column: 0},
+        {row: 0, column: 30}
+      )
+      assert.deepEqual(
+        descendants.map(node => node.startIndex),
+        [0, 4, 8, 12, 16, 20]
+      );
+
       descendants = outerSum.descendantsOfType('number')
       assert.deepEqual(
         descendants.map(node => node.startIndex),
@@ -240,7 +263,33 @@ describe("Node", () => {
         [4, 12]
       );
     })
-  })
+  });
+
+  describe('.closest(type)', () => {
+    it('returns the closest ancestor of the given type', () => {
+      const tree = parser.parse("a + 1 * b * 2 + c + 3");
+      const number = tree.rootNode.descendantForIndex(4)
+
+      const product = number.closest('product')
+      assert.equal(product.type, 'product')
+      assert.equal(product.startIndex, 4)
+      assert.equal(product.endIndex, 9)
+
+      const sum = number.closest(['sum', 'variable'])
+      assert.equal(sum.type, 'sum')
+      assert.equal(sum.startIndex, 0)
+      assert.equal(sum.endIndex, 13)
+    });
+
+    it('throws an exception when an invalid node type is given', () => {
+      const tree = parser.parse("a + 1 * b * 2 + c + 3");
+      const number = tree.rootNode.descendantForIndex(4)
+
+      assert.throws(() => number.closest('non_existent_type'), /Invalid node type/)
+      assert.throws(() => number.closest(['non_existent_type']), /Invalid node type/)
+      assert.throws(() => number.closest(/som/), /Argument must be a string or array of strings/)
+    });
+  });
 
   describe(".firstChildForIndex(index)", () => {
     it("returns the first child that extends beyond the given index", () => {
