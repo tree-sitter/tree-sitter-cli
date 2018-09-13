@@ -69,6 +69,7 @@ switch (subcommand) {
         "  --debug, -d        - Print a log of parse actions",
         "  --debug-graph, -D  - Render a sequence of diagrams showing the changing parse stack",
         "  --profile, -P      - Render a flame graph of the parse performance (requires sudo)",
+        "  --heap, -H         - Report heap allocation breakdown (requires google perf tools)",
         "  --repeat <count>   - Parse the file the given number of times (useful for profiling)",
         "  --edit <edits>     - Reparse the file after performing the given edit.",
         "                       For example, pass '5,3,\"x\"' to delete three characters and",
@@ -83,6 +84,7 @@ switch (subcommand) {
       quiet: argv.quiet || argv.q,
       time: argv.time || argv.t,
       profile: argv.profile || argv.P,
+      heapProfile: argv.heap || argv.H,
       repeat: argv.repeat,
       edits: argv.edit
     }, process.exit);
