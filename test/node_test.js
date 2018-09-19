@@ -281,13 +281,11 @@ describe("Node", () => {
       assert.equal(sum.endIndex, 13)
     });
 
-    it('throws an exception when an invalid node type is given', () => {
+    it('throws an exception when an invalid argument is given', () => {
       const tree = parser.parse("a + 1 * b * 2 + c + 3");
       const number = tree.rootNode.descendantForIndex(4)
 
-      assert.throws(() => number.closest('non_existent_type'), /Invalid node type/)
-      assert.throws(() => number.closest(['non_existent_type']), /Invalid node type/)
-      assert.throws(() => number.closest(/som/), /Argument must be a string or array of strings/)
+      assert.throws(() => number.closest({a: 1}), /Argument must be a string or array of strings/)
     });
   });
 
