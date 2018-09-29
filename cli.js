@@ -1,7 +1,9 @@
 #!/usr/bin/env node
 
+const fs = require("fs");
 const path = require("path");
 const minimist = require("minimist");
+const {execFileSync} = require('child_process');
 
 let args = process.argv.slice(2);
 let subcommand = args.shift();
@@ -37,6 +39,33 @@ switch (subcommand) {
       profile: argv.profile || argv.P,
       debug: argv.debug || argv.d
     }, process.exit);
+    break;
+
+  case "build":
+    if (needsHelp)
+      usage("build", [
+        "Generate and recompile the parser. See the `generate` command.",
+      ]);
+
+    require("./lib/cli/generate")({}, () => {
+      try {
+        if (!fs.existsSync(path.join('build', 'config.gypi'))) {
+          execFileSync('node-gyp', ['configure'], {stdio: 'inherit'})
+        }
+        execFileSync('node-gyp', ['build', ...args], {stdio: 'inherit'})
+      } catch (error) {
+        if (error.code === 'ENOENT') {
+            console.error([
+            'You need to install node-gyp separately to use this command',
+            '',
+            'Consider installing it globally, like this:',
+            '',
+            '  npm install --global node-gyp',
+            '',
+          ].join('\n'));
+        }
+      }
+    });
     break;
 
   case "test":
@@ -91,7 +120,7 @@ switch (subcommand) {
     break;
 
   default:
-    usage("<generate|test|parse> [flags]", [
+    usage("<generate|test|parse|build> [flags]", [
       "Run `tree-sitter <command> --help` for more information about a particular command."
     ])
     break;
