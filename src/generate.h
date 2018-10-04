@@ -6,7 +6,8 @@
 
 namespace node_tree_sitter_cli {
 
-void Generate(const Nan::FunctionCallbackInfo<v8::Value> &);
+void GenerateParserCode(const Nan::FunctionCallbackInfo<v8::Value> &);
+void GeneratePropertyJSON(const Nan::FunctionCallbackInfo<v8::Value> &);
 
 }  // namespace node_tree_sitter_cli
 
