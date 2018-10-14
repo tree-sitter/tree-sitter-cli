@@ -166,5 +166,21 @@ describe('grammar properties', () => {
         generatePropertyJSON(`a > :nth-child(0) {}`)
       }, /Pseudo class ':nth-child' must be used together with a node type/)
     });
+
+    it('breaks specificity ties using the order in the cascade', () => {
+      const css = `
+        f1 f2:nth-child(1) { color: red; }
+        f1:nth-child(1) f2 { color: green; }
+        f1 f2:text('a') { color: blue; }
+        f1 f2:text('b') { color: violet; }
+      `;
+
+      const properties = JSON.parse(generatePropertyJSON(css));
+      assert.deepEqual(queryProperties(properties, ['f1', 'f2'], [0, 0], 'x'), {});
+      assert.deepEqual(queryProperties(properties, ['f1', 'f2'], [0, 1], 'x'), {color: 'red'});
+      assert.deepEqual(queryProperties(properties, ['f1', 'f2'], [1, 1], 'x'), {color: 'green'});
+      assert.deepEqual(queryProperties(properties, ['f1', 'f2'], [1, 1], 'a'), {color: 'blue'});
+      assert.deepEqual(queryProperties(properties, ['f1', 'f2'], [1, 1], 'ab'), {color: 'violet'});
+    })
   });
 });
