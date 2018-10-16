@@ -27,6 +27,7 @@
     "mkdirp": "^0.5.1",
     "nan": "^2.10.0",
     "prettier": "^1.12.1",
+    "scss-parser": "^1.0.0",
     "temp": "0.8.x",
     "tree-sitter": "^0.13.15",
     "vows": "0.7.x"

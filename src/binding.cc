@@ -12,8 +12,11 @@ using namespace v8;
 void InitAll(Handle<Object> exports) {
   node_tree_sitter_cli::InitLanguage(exports);
   exports->Set(
-      Nan::New("generate").ToLocalChecked(),
-      Nan::New<FunctionTemplate>(Generate)->GetFunction());
+      Nan::New("generateParserCode").ToLocalChecked(),
+      Nan::New<FunctionTemplate>(GenerateParserCode)->GetFunction());
+  exports->Set(
+      Nan::New("generatePropertyJSON").ToLocalChecked(),
+      Nan::New<FunctionTemplate>(GeneratePropertyJSON)->GetFunction());
   exports->Set(
       Nan::New("loadLanguage").ToLocalChecked(),
       Nan::New<FunctionTemplate>(LoadLanguage)->GetFunction());

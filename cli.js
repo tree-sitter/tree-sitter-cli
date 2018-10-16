@@ -35,7 +35,8 @@ switch (subcommand) {
 
     require("./lib/cli/generate")({
       profile: argv.profile || argv.P,
-      debug: argv.debug || argv.d
+      debug: argv.debug || argv.d,
+      properties: argv.properties
     }, process.exit);
     break;
 
@@ -86,7 +87,8 @@ switch (subcommand) {
       profile: argv.profile || argv.P,
       heapProfile: argv.heap || argv.H,
       repeat: argv.repeat,
-      edits: argv.edit
+      edits: argv.edit,
+      properties: argv.properties
     }, process.exit);
     break;
 
