@@ -181,87 +181,127 @@ describe("Tree", () => {
       const tree = parser.parse('a * b + c / d');
 
       const cursor = tree.walk();
-      assert.equal(cursor.nodeType, 'program');
-      assert.equal(cursor.nodeIsNamed, true);
-      assert.deepEqual(cursor.startPosition, {row: 0, column: 0});
-      assert.deepEqual(cursor.endPosition, {row: 0, column: 13});
-      assert.deepEqual(cursor.startIndex, 0);
-      assert.deepEqual(cursor.endIndex, 13);
+      let expected = {
+        nodeType: 'program',
+        nodeIsNamed: true,
+        startPosition: {row: 0, column: 0},
+        endPosition: {row: 0, column: 13},
+        startIndex: 0,
+        endIndex: 13
+      }
+      checkCursorNode(cursor, expected);
+      checkCursorNode(cursor.currentNode, expected);
 
       assert(cursor.gotoFirstChild());
-      assert.equal(cursor.nodeType, 'sum');
-      assert.equal(cursor.nodeIsNamed, true);
-      assert.deepEqual(cursor.startPosition, {row: 0, column: 0});
-      assert.deepEqual(cursor.endPosition, {row: 0, column: 13});
-      assert.deepEqual(cursor.startIndex, 0);
-      assert.deepEqual(cursor.endIndex, 13);
+      expected = {
+        nodeType: 'sum',
+        nodeIsNamed: true,
+        startPosition: {row: 0, column: 0},
+        endPosition: {row: 0, column: 13},
+        startIndex: 0,
+        endIndex: 13
+      }
+      checkCursorNode(cursor, expected);
+      checkCursorNode(cursor.currentNode, expected);
 
       assert(cursor.gotoFirstChild());
-      assert.equal(cursor.nodeType, 'product');
-      assert.equal(cursor.nodeIsNamed, true);
-      assert.deepEqual(cursor.startPosition, {row: 0, column: 0});
-      assert.deepEqual(cursor.endPosition, {row: 0, column: 5});
-      assert.deepEqual(cursor.startIndex, 0);
-      assert.deepEqual(cursor.endIndex, 5);
+      expected = {
+        nodeType: 'product',
+        nodeIsNamed: true,
+        startPosition: {row: 0, column: 0},
+        endPosition: {row: 0, column: 5},
+        startIndex: 0,
+        endIndex: 5
+      }
+      checkCursorNode(cursor, expected);
+      checkCursorNode(cursor.currentNode, expected);
 
       assert(cursor.gotoFirstChild());
-      assert.equal(cursor.nodeType, 'variable');
-      assert.equal(cursor.nodeIsNamed, true);
-      assert.deepEqual(cursor.startPosition, {row: 0, column: 0});
-      assert.deepEqual(cursor.endPosition, {row: 0, column: 1});
-      assert.deepEqual(cursor.startIndex, 0);
-      assert.deepEqual(cursor.endIndex, 1);
+      expected = {
+        nodeType: 'variable',
+        nodeIsNamed: true,
+        startPosition: {row: 0, column: 0},
+        endPosition: {row: 0, column: 1},
+        startIndex: 0,
+        endIndex: 1
+      }
+      checkCursorNode(cursor, expected);
+      checkCursorNode(cursor.currentNode, expected);
 
       assert(!cursor.gotoFirstChild())
       assert(cursor.gotoNextSibling());
-      assert.equal(cursor.nodeType, '*');
-      assert.equal(cursor.nodeIsNamed, false);
-      assert.deepEqual(cursor.startPosition, {row: 0, column: 2});
-      assert.deepEqual(cursor.endPosition, {row: 0, column: 3});
-      assert.deepEqual(cursor.startIndex, 2);
-      assert.deepEqual(cursor.endIndex, 3);
+      expected = {
+        nodeType: '*',
+        nodeIsNamed: false,
+        startPosition: {row: 0, column: 2},
+        endPosition: {row: 0, column: 3},
+        startIndex: 2,
+        endIndex: 3
+      }
+      checkCursorNode(cursor, expected);
+      checkCursorNode(cursor.currentNode, expected);
 
       assert(cursor.gotoNextSibling());
-      assert.equal(cursor.nodeType, 'variable');
-      assert.equal(cursor.nodeIsNamed, true);
-      assert.deepEqual(cursor.startPosition, {row: 0, column: 4});
-      assert.deepEqual(cursor.endPosition, {row: 0, column: 5});
-      assert.deepEqual(cursor.startIndex, 4);
-      assert.deepEqual(cursor.endIndex, 5);
+      expected = {
+        nodeType: 'variable',
+        nodeIsNamed: true,
+        startPosition: {row: 0, column: 4},
+        endPosition: {row: 0, column: 5},
+        startIndex: 4,
+        endIndex: 5
+      }
+      checkCursorNode(cursor, expected);
+      checkCursorNode(cursor.currentNode, expected);
 
       assert(!cursor.gotoNextSibling());
       assert(cursor.gotoParent());
-      assert.equal(cursor.nodeType, 'product');
-      assert.equal(cursor.nodeIsNamed, true);
-      assert.deepEqual(cursor.startPosition, {row: 0, column: 0});
-      assert.deepEqual(cursor.endPosition, {row: 0, column: 5});
-      assert.deepEqual(cursor.startIndex, 0);
-      assert.deepEqual(cursor.endIndex, 5);
+      expected = {
+        nodeType: 'product',
+        nodeIsNamed: true,
+        startPosition: {row: 0, column: 0},
+        endPosition: {row: 0, column: 5},
+        startIndex: 0,
+        endIndex: 5
+      }
+      checkCursorNode(cursor, expected);
+      checkCursorNode(cursor.currentNode, expected);
 
       assert(cursor.gotoNextSibling());
-      assert.equal(cursor.nodeType, '+');
-      assert.equal(cursor.nodeIsNamed, false);
-      assert.deepEqual(cursor.startPosition, {row: 0, column: 6});
-      assert.deepEqual(cursor.endPosition, {row: 0, column: 7});
-      assert.deepEqual(cursor.startIndex, 6);
-      assert.deepEqual(cursor.endIndex, 7);
+      expected = {
+        nodeType: '+',
+        nodeIsNamed: false,
+        startPosition: {row: 0, column: 6},
+        endPosition: {row: 0, column: 7},
+        startIndex: 6,
+        endIndex: 7
+      }
+      checkCursorNode(cursor, expected);
+      checkCursorNode(cursor.currentNode, expected);
 
       assert(cursor.gotoNextSibling());
-      assert.equal(cursor.nodeType, 'quotient');
-      assert.equal(cursor.nodeIsNamed, true);
-      assert.deepEqual(cursor.startPosition, {row: 0, column: 8});
-      assert.deepEqual(cursor.endPosition, {row: 0, column: 13});
-      assert.deepEqual(cursor.startIndex, 8);
-      assert.deepEqual(cursor.endIndex, 13);
+      expected = {
+        nodeType: 'quotient',
+        nodeIsNamed: true,
+        startPosition: {row: 0, column: 8},
+        endPosition: {row: 0, column: 13},
+        startIndex: 8,
+        endIndex: 13
+      }
+      checkCursorNode(cursor, expected);
+      checkCursorNode(cursor.currentNode, expected);
 
       const childIndex = cursor.gotoFirstChildForIndex(12);
+      expected = {
+        nodeType: 'variable',
+        nodeIsNamed: true,
+        startPosition: {row: 0, column: 12},
+        endPosition: {row: 0, column: 13},
+        startIndex: 12,
+        endIndex: 13
+      }
+      checkCursorNode(cursor, expected);
+      checkCursorNode(cursor.currentNode, expected);
       assert.equal(childIndex, 2);
-      assert.equal(cursor.nodeType, 'variable');
-      assert.equal(cursor.nodeIsNamed, true);
-      assert.deepEqual(cursor.startPosition, {row: 0, column: 12});
-      assert.deepEqual(cursor.endPosition, {row: 0, column: 13});
-      assert.deepEqual(cursor.startIndex, 12);
-      assert.deepEqual(cursor.endIndex, 13);
 
       assert(!cursor.gotoNextSibling());
       assert(cursor.gotoParent());
@@ -271,6 +311,20 @@ describe("Tree", () => {
     });
   });
 });
+
+function checkCursorNode(target, expected) {
+  if (target instanceof Parser.SyntaxNode) {
+    assert.equal(target.type, expected.nodeType);
+    assert.equal(target.isNamed, expected.nodeIsNamed);
+  } else {
+    assert.equal(target.nodeType, expected.nodeType);
+    assert.equal(target.nodeIsNamed, expected.nodeIsNamed);
+  }
+  assert.deepEqual(target.startPosition, expected.startPosition);
+  assert.deepEqual(target.endPosition, expected.endPosition);
+  assert.deepEqual(target.startIndex, expected.startIndex);
+  assert.deepEqual(target.endIndex, expected.endIndex);
+}
 
 function spliceInput(input, startIndex, lengthRemoved, newText) {
   const oldEndIndex = startIndex + lengthRemoved;
