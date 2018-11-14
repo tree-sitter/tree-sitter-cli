@@ -309,6 +309,28 @@ describe("Tree", () => {
       assert(cursor.gotoParent());
       assert(!cursor.gotoParent());
     });
+
+    it('returns a cursor that can be reset anywhere in the tree', () => {
+      const tree = parser.parse('a * b + c / d');
+      const cursor = tree.walk();
+      const root = tree.rootNode;
+
+      // This should be the product node
+      cursor.reset(root.children[0].children[0]);
+      expected = {
+        nodeType: 'product',
+        nodeIsNamed: true,
+        startPosition: {row: 0, column: 0},
+        endPosition: {row: 0, column: 5},
+        startIndex: 0,
+        endIndex: 5
+      }
+      checkCursorNode(cursor, expected);
+      checkCursorNode(cursor.currentNode, expected);
+
+      cursor.reset(root);
+      assert(!cursor.gotoParent());
+    })
   });
 });
 
