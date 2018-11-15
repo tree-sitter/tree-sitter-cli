@@ -181,126 +181,106 @@ describe("Tree", () => {
       const tree = parser.parse('a * b + c / d');
 
       const cursor = tree.walk();
-      let expected = {
+      assertCursorState(cursor, {
         nodeType: 'program',
         nodeIsNamed: true,
         startPosition: {row: 0, column: 0},
         endPosition: {row: 0, column: 13},
         startIndex: 0,
         endIndex: 13
-      }
-      checkCursorNode(cursor, expected);
-      checkCursorNode(cursor.currentNode, expected);
+      });
 
       assert(cursor.gotoFirstChild());
-      expected = {
+      assertCursorState(cursor, {
         nodeType: 'sum',
         nodeIsNamed: true,
         startPosition: {row: 0, column: 0},
         endPosition: {row: 0, column: 13},
         startIndex: 0,
         endIndex: 13
-      }
-      checkCursorNode(cursor, expected);
-      checkCursorNode(cursor.currentNode, expected);
+      });
 
       assert(cursor.gotoFirstChild());
-      expected = {
+      assertCursorState(cursor, {
         nodeType: 'product',
         nodeIsNamed: true,
         startPosition: {row: 0, column: 0},
         endPosition: {row: 0, column: 5},
         startIndex: 0,
         endIndex: 5
-      }
-      checkCursorNode(cursor, expected);
-      checkCursorNode(cursor.currentNode, expected);
+      });
 
       assert(cursor.gotoFirstChild());
-      expected = {
+      assertCursorState(cursor, {
         nodeType: 'variable',
         nodeIsNamed: true,
         startPosition: {row: 0, column: 0},
         endPosition: {row: 0, column: 1},
         startIndex: 0,
         endIndex: 1
-      }
-      checkCursorNode(cursor, expected);
-      checkCursorNode(cursor.currentNode, expected);
+      });
 
       assert(!cursor.gotoFirstChild())
       assert(cursor.gotoNextSibling());
-      expected = {
+      assertCursorState(cursor, {
         nodeType: '*',
         nodeIsNamed: false,
         startPosition: {row: 0, column: 2},
         endPosition: {row: 0, column: 3},
         startIndex: 2,
         endIndex: 3
-      }
-      checkCursorNode(cursor, expected);
-      checkCursorNode(cursor.currentNode, expected);
+      });
 
       assert(cursor.gotoNextSibling());
-      expected = {
+      assertCursorState(cursor, {
         nodeType: 'variable',
         nodeIsNamed: true,
         startPosition: {row: 0, column: 4},
         endPosition: {row: 0, column: 5},
         startIndex: 4,
         endIndex: 5
-      }
-      checkCursorNode(cursor, expected);
-      checkCursorNode(cursor.currentNode, expected);
+      });
 
       assert(!cursor.gotoNextSibling());
       assert(cursor.gotoParent());
-      expected = {
+      assertCursorState(cursor, {
         nodeType: 'product',
         nodeIsNamed: true,
         startPosition: {row: 0, column: 0},
         endPosition: {row: 0, column: 5},
         startIndex: 0,
         endIndex: 5
-      }
-      checkCursorNode(cursor, expected);
-      checkCursorNode(cursor.currentNode, expected);
+      });
 
       assert(cursor.gotoNextSibling());
-      expected = {
+      assertCursorState(cursor, {
         nodeType: '+',
         nodeIsNamed: false,
         startPosition: {row: 0, column: 6},
         endPosition: {row: 0, column: 7},
         startIndex: 6,
         endIndex: 7
-      }
-      checkCursorNode(cursor, expected);
-      checkCursorNode(cursor.currentNode, expected);
+      });
 
       assert(cursor.gotoNextSibling());
-      expected = {
+      assertCursorState(cursor, {
         nodeType: 'quotient',
         nodeIsNamed: true,
         startPosition: {row: 0, column: 8},
         endPosition: {row: 0, column: 13},
         startIndex: 8,
         endIndex: 13
-      }
-      checkCursorNode(cursor, expected);
-      checkCursorNode(cursor.currentNode, expected);
+      });
 
       const childIndex = cursor.gotoFirstChildForIndex(12);
-      expected = {
+      assertCursorState(cursor, {
         nodeType: 'variable',
         nodeIsNamed: true,
         startPosition: {row: 0, column: 12},
         endPosition: {row: 0, column: 13},
         startIndex: 12,
         endIndex: 13
-      }
-      checkCursorNode(cursor, expected);
-      checkCursorNode(cursor.currentNode, expected);
+      });
       assert.equal(childIndex, 2);
 
       assert(!cursor.gotoNextSibling());
@@ -315,18 +295,25 @@ describe("Tree", () => {
       const cursor = tree.walk();
       const root = tree.rootNode;
 
-      // This should be the product node
       cursor.reset(root.children[0].children[0]);
-      expected = {
+      assertCursorState(cursor, {
         nodeType: 'product',
         nodeIsNamed: true,
         startPosition: {row: 0, column: 0},
         endPosition: {row: 0, column: 5},
         startIndex: 0,
         endIndex: 5
-      }
-      checkCursorNode(cursor, expected);
-      checkCursorNode(cursor.currentNode, expected);
+      });
+
+      cursor.gotoFirstChild()
+      assertCursorState(cursor, {
+        nodeType: 'variable',
+        nodeIsNamed: true,
+        startPosition: {row: 0, column: 0},
+        endPosition: {row: 0, column: 1},
+        startIndex: 0,
+        endIndex: 1
+      });
 
       cursor.reset(root);
       assert(!cursor.gotoParent());
@@ -334,18 +321,21 @@ describe("Tree", () => {
   });
 });
 
-function checkCursorNode(target, expected) {
-  if (target instanceof Parser.SyntaxNode) {
-    assert.equal(target.type, expected.nodeType);
-    assert.equal(target.isNamed, expected.nodeIsNamed);
-  } else {
-    assert.equal(target.nodeType, expected.nodeType);
-    assert.equal(target.nodeIsNamed, expected.nodeIsNamed);
-  }
-  assert.deepEqual(target.startPosition, expected.startPosition);
-  assert.deepEqual(target.endPosition, expected.endPosition);
-  assert.deepEqual(target.startIndex, expected.startIndex);
-  assert.deepEqual(target.endIndex, expected.endIndex);
+function assertCursorState(cursor, params) {
+  assert.equal(cursor.nodeType, params.nodeType);
+  assert.equal(cursor.nodeIsNamed, params.nodeIsNamed);
+  assert.deepEqual(cursor.startPosition, params.startPosition);
+  assert.deepEqual(cursor.endPosition, params.endPosition);
+  assert.deepEqual(cursor.startIndex, params.startIndex);
+  assert.deepEqual(cursor.endIndex, params.endIndex);
+
+  const node = cursor.currentNode
+  assert.equal(node.type, cursor.nodeType);
+  assert.equal(node.isNamed, cursor.nodeIsNamed);
+  assert.deepEqual(node.startPosition, params.startPosition);
+  assert.deepEqual(node.endPosition, params.endPosition);
+  assert.deepEqual(node.startIndex, params.startIndex);
+  assert.deepEqual(node.endIndex, params.endIndex);
 }
 
 function spliceInput(input, startIndex, lengthRemoved, newText) {
