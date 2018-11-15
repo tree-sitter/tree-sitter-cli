@@ -29,7 +29,7 @@
     "prettier": "^1.12.1",
     "scss-parser": "^1.0.0",
     "temp": "0.8.x",
-    "tree-sitter": "^0.13.15",
+    "tree-sitter": "^0.13.22",
     "vows": "0.7.x"
   },
   "devDependencies": {
