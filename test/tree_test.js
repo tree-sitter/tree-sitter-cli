@@ -330,8 +330,8 @@ function assertCursorState(cursor, params) {
   assert.deepEqual(cursor.endIndex, params.endIndex);
 
   const node = cursor.currentNode
-  assert.equal(node.type, cursor.nodeType);
-  assert.equal(node.isNamed, cursor.nodeIsNamed);
+  assert.equal(node.type, params.nodeType);
+  assert.equal(node.isNamed, params.nodeIsNamed);
   assert.deepEqual(node.startPosition, params.startPosition);
   assert.deepEqual(node.endPosition, params.endPosition);
   assert.deepEqual(node.startIndex, params.startIndex);
