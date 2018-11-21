@@ -26,6 +26,7 @@
     "minimist": "^1.2.0",
     "mkdirp": "^0.5.1",
     "nan": "^2.10.0",
+    "node-gyp": "^3.8.0",
     "prettier": "^1.12.1",
     "temp": "0.8.x",
     "tree-sitter": "^0.13.15",

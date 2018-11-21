@@ -48,23 +48,12 @@ switch (subcommand) {
       ]);
 
     require("./lib/cli/generate")({}, () => {
-      try {
-        if (!fs.existsSync(path.join('build', 'config.gypi'))) {
-          execFileSync('node-gyp', ['configure'], {stdio: 'inherit'})
-        }
-        execFileSync('node-gyp', ['build', ...args], {stdio: 'inherit'})
-      } catch (error) {
-        if (error.code === 'ENOENT') {
-            console.error([
-            'You need to install node-gyp separately to use this command',
-            '',
-            'Consider installing it globally, like this:',
-            '',
-            '  npm install --global node-gyp',
-            '',
-          ].join('\n'));
-        }
+      const nodeGyp = require.resolve('node-gyp/bin/node-gyp.js');
+      if (!fs.existsSync(path.join('build', 'config.gypi'))) {
+        execFileSync(nodeGyp, ['configure'], {stdio: 'inherit'});
       }
+      execFileSync(nodeGyp, ['build', ...args], {stdio: 'inherit'});
+      process.exit(0)
     });
     break;
 
