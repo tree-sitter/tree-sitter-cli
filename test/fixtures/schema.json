@@ -1,0 +1,9 @@
+{
+  "number": {
+    "type": "string",
+    "enum": [
+      "one",
+      "two"
+    ]
+  }
+}

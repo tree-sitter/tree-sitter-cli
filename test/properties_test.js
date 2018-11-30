@@ -21,9 +21,9 @@ describe('grammar properties', () => {
           properties: {define: 'local'}
         }
       ])
-    })
+    });
 
-    it('parses nested selectors', async () => {
+    it('parses nested selectors', () => {
       const css = `
         a, b {
           p: q;
@@ -34,7 +34,7 @@ describe('grammar properties', () => {
         }
       `;
 
-      assert.deepEqual(await parseProperties(css), [
+      assert.deepEqual(parseProperties(css), [
         {
           selectors: [
             [
@@ -70,6 +70,27 @@ describe('grammar properties', () => {
           properties: {p: 'w'}
         }
       ])
+    });
+
+    it('validates schemas', () => {
+      assert.throws(() =>
+        parseProperties(
+          `
+            @schema "./fixtures/schema.json";
+            a { number: three; }
+          `,
+          __dirname
+        )
+      , /Invalid value 'three' for property 'number'/)
+
+      // The value 'two' is in the schema.
+      parseProperties(
+        `
+          @schema "./fixtures/schema.json";
+          a { number: two; }
+        `,
+        __dirname
+      )
     })
   });
 
