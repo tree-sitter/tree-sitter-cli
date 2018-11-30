@@ -23,6 +23,7 @@
     "@maxbrunsfeld/flame-graph": "^0.1.9",
     "ejs": "^2.5.7",
     "fs-extra": "^0.30.0",
+    "jsonschema": "^1.2.4",
     "minimist": "^1.2.0",
     "mkdirp": "^0.5.1",
     "nan": "^2.10.0",
@@ -35,7 +36,6 @@
   },
   "devDependencies": {
     "chai": "3.5.x",
-    "jsonschema": "^1.2.4",
     "mocha": "^5.2.0",
     "superstring": "^2.3.1-0"
   }
