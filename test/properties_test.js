@@ -91,7 +91,33 @@ describe('grammar properties', () => {
         `,
         __dirname
       )
-    })
+    });
+
+    it('processes imports', () => {
+      const properties = parseProperties(
+        `
+          a { b: c; }
+          @import "./fixtures/import.css";
+          d { e: f; }
+        `,
+        __dirname
+      )
+
+      assert.deepEqual(properties, [
+        {
+          selectors: [[{immediate: false, named: true, type: 'a'}]],
+          properties: {b: 'c'}
+        },
+        {
+          selectors: [[{immediate: false, named: true, type: 'foo'}]],
+          properties: {number: 'two'}
+        },
+        {
+          selectors: [[{immediate: false, named: true, type: 'd'}]],
+          properties: {e: 'f'}
+        }
+      ]);
+    });
   });
 
   describe('.generatePropertyJSON and .queryProperties', () => {
