@@ -111,6 +111,35 @@ describe('grammar properties', () => {
       ]);
     });
 
+    it('creates arrays when properties are listed multiple times in a block', () => {
+      const css = `
+        a {
+          b: 'foo';
+          b: 'bar';
+          b: 'baz';
+          c: f(g());
+          c: h();
+        }
+      `;
+
+      assert.deepEqual(parseProperties(css), [
+        {
+          selectors: [
+            [
+              {type: 'a', immediate: false, named: true},
+            ],
+          ],
+          properties: {
+            b: ['foo', 'bar', 'baz'],
+            c: [
+              {name: 'f', args: [{name: 'g', args: []}]},
+              {name: 'h', args: []}
+            ]
+          }
+        }
+      ]);
+    });
+
     it('validates schemas', () => {
       assert.throws(() =>
         parseProperties(
