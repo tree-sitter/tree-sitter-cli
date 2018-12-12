@@ -72,6 +72,45 @@ describe('grammar properties', () => {
       ])
     });
 
+    it('parses function calls as property values', () => {
+      const css = `
+        a {
+          b: f();
+          c: f(g(h), i, "j", 10);
+        }
+      `;
+
+      assert.deepEqual(parseProperties(css), [
+        {
+          selectors: [
+            [
+              {type: 'a', immediate: false, named: true},
+            ],
+          ],
+          properties: {
+            b: {
+              name: 'f',
+              args: []
+            },
+            c: {
+              name: 'f',
+              args: [
+                {
+                  name: 'g',
+                  args: [
+                    'h'
+                  ],
+                },
+                'i',
+                'j',
+                10
+              ]
+            },
+          }
+        }
+      ]);
+    });
+
     it('validates schemas', () => {
       assert.throws(() =>
         parseProperties(
