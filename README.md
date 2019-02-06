@@ -5,6 +5,14 @@ Incremental parsers for node
 [![Build Status](https://travis-ci.org/tree-sitter/tree-sitter-cli.svg?branch=master)](https://travis-ci.org/tree-sitter/tree-sitter-cli)
 [![Build status](https://ci.appveyor.com/api/projects/status/t9775gnhcnsb5na1/branch/master?svg=true)](https://ci.appveyor.com/project/maxbrunsfeld/tree-sitter-cli/branch/master)
 
+---
+
+:warning: This repository is deprecated. :warning:
+
+The source code for the Tree-sitter CLI is now part of [the main Tree-sitter repository](https://github.com/tree-sitter/tree-sitter).
+
+---
+
 ### Installation
 
 ```
