@@ -104,6 +104,28 @@ describe("Writing a grammar", () => {
       });
     });
 
+    describe("array", () => {
+      it("matches a sequence of rules", () => {
+        const language = generateAndLoadLanguage(
+          grammar({
+            name: "test_grammar",
+            rules: {
+              the_rule: $ => ["the", " ", "strings"]
+            }
+          })
+        );
+
+        parser.setLanguage(language);
+
+        tree = parser.parse("the strings");
+        assert.equal(tree.rootNode.toString(), "(the_rule)");
+
+        tree = parser.parse("another-string");
+        assert.equal(tree.rootNode.toString(),
+          "(ERROR (ERROR (UNEXPECTED 'a')) (UNEXPECTED 'r'))");
+      });
+    });
+
     describe("repeat", () => {
       it("applies the given rule any number of times", () => {
         const language = generateAndLoadLanguage(
@@ -124,6 +146,28 @@ describe("Writing a grammar", () => {
         assert.equal(tree.rootNode.toString(), "(the_rule)");
 
         tree = parser.parse("ooo");
+        assert.equal(tree.rootNode.toString(), "(the_rule)");
+      });
+
+      it("implicitly sequences multiple arguments", () => {
+        const language = generateAndLoadLanguage(
+          grammar({
+            name: "test_grammar",
+            rules: {
+              the_rule: $ => repeat("h", "i")
+            }
+          })
+        );
+
+        parser.setLanguage(language);
+
+        tree = parser.parse("");
+        assert.equal(tree.rootNode.toString(), "(the_rule)");
+
+        tree = parser.parse("hi");
+        assert.equal(tree.rootNode.toString(), "(the_rule)");
+
+        tree = parser.parse("hihi");
         assert.equal(tree.rootNode.toString(), "(the_rule)");
       });
     });
